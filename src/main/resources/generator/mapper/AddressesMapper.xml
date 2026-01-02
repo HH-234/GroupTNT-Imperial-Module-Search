@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="generator.mapper.AddressesMapper">
+
+    <resultMap id="BaseResultMap" type="generator.domain.Addresses">
+            <result property="id" column="id" />
+            <result property="userId" column="user_id" />
+            <result property="countryCode" column="country_code" />
+            <result property="singleLineFormat" column="single_line_format" />
+            <result property="streetAddress" column="street_address" />
+            <result property="city" column="city" />
+            <result property="state" column="state" />
+            <result property="country" column="country" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,country_code,single_line_format,street_address,city,
+        state,country
+    </sql>
+</mapper>

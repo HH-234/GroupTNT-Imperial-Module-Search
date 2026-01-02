@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioEng App Search</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tab-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tab-button:first-child {
+            border-radius: 5px 0 0 5px;
+        }
+        .tab-button:last-child {
+            border-radius: 0 5px 5px 0;
+        }
+        .search-container {
+            display: none;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .search-container.active {
+            display: block;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+        }
+        button.search-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button.search-btn:hover {
+            background-color: #27ae60;
+        }
+        .results {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: white;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .nested-table {
+            width: 90%;
+            margin: 10px auto;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+        }
+        .nested-table th {
+            background-color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .nested-table td {
+            font-size: 0.9em;
+        }
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px;
+        }
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>BioEng Application Search</h1>
+
+    <div class="tabs">
+        <button class="tab-button active" onclick="openTab('userTab')">Search Users</button>
+        <button class="tab-button" onclick="openTab('courseTab')">Search Courses</button>
+    </div>
+
+    <!-- User Search Section -->
+    <div id="userTab" class="search-container active">
+        <div class="input-group">
+            <input type="text" id="userFullName" placeholder="Enter User Full Name (e.g., David Aanensen)">
+            <button class="search-btn" onclick="searchUsers()">Search Users</button>
+        </div>
+        <div id="userResults" class="results"></div>
+    </div>
+
+    <!-- Course Search Section -->
+    <div id="courseTab" class="search-container">
+        <div class="input-group">
+            <input type="text" id="courseName" placeholder="Enter Course Name">
+            <button class="search-btn" onclick="searchCourses()">Search Courses</button>
+        </div>
+        <div id="courseResults" class="results"></div>
+    </div>
+
+    <script>
+        function openTab(tabId) {
+            // Hide all containers
+            document.querySelectorAll('.search-container').forEach(el => el.classList.remove('active'));
+            // Deactivate all buttons
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+            
+            // Show selected
+            document.getElementById(tabId).classList.add('active');
+            // Activate button
+            const btn = Array.from(document.querySelectorAll('.tab-button')).find(b => b.onclick.toString().includes(tabId));
+            if(btn) btn.classList.add('active');
+        }
+
+        async function searchUsers() {
+            const fullName = document.getElementById('userFullName').value;
+            const resultsDiv = document.getElementById('userResults');
+            resultsDiv.innerHTML = '<p style="text-align:center">Searching...</p>';
+
+            try {
+                const response = await fetch(`/users/search/details?fullName=${encodeURIComponent(fullName)}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = '<div class="no-data">No users found</div>';
+                    return;
+                }
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Avatar</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.forEach(user => {
+                    html += `
+                        <tr>
+                            <td>${user.avatarUrl ? `<img src="${user.avatarUrl}" class="avatar" alt="Avatar">` : 'N/A'}</td>
+                            <td>${user.fullName}</td>
+                            <td>${user.emailAddress || 'N/A'}</td>
+                            <td>
+                                <strong>Phone Numbers:</strong>
+                                ${user.phoneNumbers && user.phoneNumbers.length > 0 ? 
+                                    `<table class="nested-table">
+                                        <thead><tr><th>Type</th><th>Number</th></tr></thead>
+                                        <tbody>${user.phoneNumbers.map(p => `<tr><td>${p.typeDisplayName}</td><td>${p.number}</td></tr>`).join('')}</tbody>
+                                    </table>` : '<p>No phone numbers</p>'
+                                }
+                                <strong>Addresses:</strong>
+                                ${user.addresses && user.addresses.length > 0 ? 
+                                    `<table class="nested-table">
+                                        <thead><tr><th>City</th><th>Country</th><th>Street</th></tr></thead>
+                                        <tbody>${user.addresses.map(a => `<tr><td>${a.city}</td><td>${a.country}</td><td>${a.streetAddress}</td></tr>`).join('')}</tbody>
+                                    </table>` : '<p>No addresses</p>'
+                                }
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = '<p style="color:red;text-align:center">Error fetching data. Ensure the backend is running.</p>';
+            }
+        }
+
+        async function searchCourses() {
+            const courseName = document.getElementById('courseName').value;
+            const resultsDiv = document.getElementById('courseResults');
+            resultsDiv.innerHTML = '<p style="text-align:center">Searching...</p>';
+
+            try {
+                const response = await fetch(`/courses/search?courseName=${encodeURIComponent(courseName)}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+
+                if (data.length === 0) {
+                    resultsDiv.innerHTML = '<div class="no-data">No courses found</div>';
+                    return;
+                }
+
+                let html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Course Name</th>
+                                <th>Qualification</th>
+                                <th>Duration</th>
+                                <th>Fees (Home/Overseas)</th>
+                                <th>Modules</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.forEach(course => {
+                    html += `
+                        <tr>
+                            <td><a href="${course.courseUrl}" target="_blank">${course.courseName}</a></td>
+                            <td>${course.qualification}</td>
+                            <td>${course.duration}</td>
+                            <td>${course.feeHome} / ${course.feeOverseas}</td>
+                            <td>
+                                ${course.courseModules && course.courseModules.length > 0 ? 
+                                    `<table class="nested-table">
+                                        <thead><tr><th>Year</th><th>Type</th><th>Module Name</th></tr></thead>
+                                        <tbody>${course.courseModules.map(m => `<tr><td>${m.yearNumber}</td><td>${m.moduleType}</td><td>${m.moduleName}</td></tr>`).join('')}</tbody>
+                                    </table>` : '<p>No modules listed</p>'
+                                }
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = '<p style="color:red;text-align:center">Error fetching data. Ensure the backend is running.</p>';
+            }
+        }
+    </script>
+</body>
+</html>

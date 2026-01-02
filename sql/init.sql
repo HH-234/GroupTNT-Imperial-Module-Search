@@ -1,0 +1,1 @@
+INSERT INTO "users" ("id", "discovery_url_id", "avatar_url", "first_name", "last_name", "full_name", "email_address", "created_at", "updated_at") VALUES (6476, 'd.short22', 'https://profiles.imperial.ac.uk/d.short22/thumbnail', 'Daniel', 'Short', 'Daniel Short', 'd.short22@imperial.ac.uk', '2026-01-02 13:17:09', '2026-01-02 21:16:57');
