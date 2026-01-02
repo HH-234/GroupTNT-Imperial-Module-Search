@@ -1,8 +1,8 @@
-package generator.controller;
+package com.zds.bioengtsnapp.controller;
 
-import generator.domain.Users;
-import generator.dto.UserDetailDTO;
-import generator.service.UsersService;
+import com.zds.bioengtsnapp.domain.Users;
+import com.zds.bioengtsnapp.dto.UserDetailDTO;
+import com.zds.bioengtsnapp.service.UsersService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 

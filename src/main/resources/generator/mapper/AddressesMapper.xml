@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="generator.mapper.AddressesMapper">
+<mapper namespace="com.zds.bioengtsnapp.mapper.AddressesMapper">
 
-    <resultMap id="BaseResultMap" type="generator.domain.Addresses">
+    <resultMap id="BaseResultMap" type="com.zds.bioengtsnapp.domain.Addresses">
             <result property="id" column="id" />
             <result property="userId" column="user_id" />
             <result property="countryCode" column="country_code" />

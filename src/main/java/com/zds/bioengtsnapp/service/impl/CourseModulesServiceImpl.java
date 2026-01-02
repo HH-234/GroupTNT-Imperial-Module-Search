@@ -1,9 +1,9 @@
-package generator.service.impl;
+package com.zds.bioengtsnapp.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import generator.domain.CourseModules;
-import generator.service.CourseModulesService;
-import generator.mapper.CourseModulesMapper;
+import com.zds.bioengtsnapp.domain.CourseModules;
+import com.zds.bioengtsnapp.service.CourseModulesService;
+import com.zds.bioengtsnapp.mapper.CourseModulesMapper;
 import org.springframework.stereotype.Service;
 
 /**

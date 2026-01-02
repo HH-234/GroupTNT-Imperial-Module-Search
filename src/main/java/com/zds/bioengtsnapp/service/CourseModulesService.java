@@ -1,6 +1,6 @@
-package generator.service;
+package com.zds.bioengtsnapp.service;
 
-import generator.domain.CourseModules;
+import com.zds.bioengtsnapp.domain.CourseModules;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

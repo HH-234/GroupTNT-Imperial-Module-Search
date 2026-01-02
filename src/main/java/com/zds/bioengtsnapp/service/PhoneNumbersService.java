@@ -1,6 +1,6 @@
-package generator.service;
+package com.zds.bioengtsnapp.service;
 
-import generator.domain.PhoneNumbers;
+import com.zds.bioengtsnapp.domain.PhoneNumbers;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

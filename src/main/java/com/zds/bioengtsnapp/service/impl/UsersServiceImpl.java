@@ -1,17 +1,18 @@
-package generator.service.impl;
+package com.zds.bioengtsnapp.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import generator.domain.Users;
-import generator.domain.PhoneNumbers;
-import generator.domain.Addresses;
-import generator.dto.UserDetailDTO;
-import generator.service.UsersService;
-import generator.mapper.UsersMapper;
-import generator.mapper.PhoneNumbersMapper;
-import generator.mapper.AddressesMapper;
+import com.zds.bioengtsnapp.domain.Users;
+import com.zds.bioengtsnapp.domain.PhoneNumbers;
+import com.zds.bioengtsnapp.domain.Addresses;
+import com.zds.bioengtsnapp.dto.UserDetailDTO;
+import com.zds.bioengtsnapp.service.UsersService;
+import com.zds.bioengtsnapp.mapper.UsersMapper;
+import com.zds.bioengtsnapp.mapper.PhoneNumbersMapper;
+import com.zds.bioengtsnapp.mapper.AddressesMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -22,7 +23,7 @@ import java.util.*;
 */
 @Service
 public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users>
-    implements UsersService{
+    implements UsersService {
 
     @Autowired
     private PhoneNumbersMapper phoneNumbersMapper;
@@ -31,11 +32,13 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users>
     private AddressesMapper addressesMapper;
 
     @Override
+    @Transactional(readOnly = true)
     public List<Users> getUsersByFullName(String fullName) {
         return lambdaQuery().eq(Users::getFullName, fullName).list();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDetailDTO> getUserDetailsByFullName(String fullName) {
         // 先查询用户基本信息
         List<Users> users = getUsersByFullName(fullName);

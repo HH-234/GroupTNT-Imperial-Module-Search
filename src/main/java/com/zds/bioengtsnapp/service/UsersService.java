@@ -1,7 +1,7 @@
-package generator.service;
+package com.zds.bioengtsnapp.service;
 
-import generator.domain.Users;
-import generator.dto.UserDetailDTO;
+import com.zds.bioengtsnapp.domain.Users;
+import com.zds.bioengtsnapp.dto.UserDetailDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;

@@ -1,17 +1,13 @@
-package generator.domain;
+package com.zds.bioengtsnapp.domain;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.ToString;
 
 /**
  * 
  * @TableName addresses
  */
-@TableName(value ="addresses")
+@TableName(value = "addresses")
 @Data
 public class Addresses {
     public Integer getId() {

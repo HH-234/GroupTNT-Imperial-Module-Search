@@ -1,9 +1,9 @@
-package generator.service.impl;
+package com.zds.bioengtsnapp.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import generator.domain.Addresses;
-import generator.service.AddressesService;
-import generator.mapper.AddressesMapper;
+import com.zds.bioengtsnapp.domain.Addresses;
+import com.zds.bioengtsnapp.service.AddressesService;
+import com.zds.bioengtsnapp.mapper.AddressesMapper;
 import org.springframework.stereotype.Service;
 
 /**

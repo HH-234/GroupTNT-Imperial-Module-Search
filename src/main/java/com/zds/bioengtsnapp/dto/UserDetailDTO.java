@@ -1,4 +1,4 @@
-package generator.dto;
+package com.zds.bioengtsnapp.dto;
 
 import lombok.Data;
 import java.util.List;

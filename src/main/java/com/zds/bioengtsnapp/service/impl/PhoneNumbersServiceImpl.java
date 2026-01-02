@@ -1,9 +1,9 @@
-package generator.service.impl;
+package com.zds.bioengtsnapp.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import generator.domain.PhoneNumbers;
-import generator.service.PhoneNumbersService;
-import generator.mapper.PhoneNumbersMapper;
+import com.zds.bioengtsnapp.domain.PhoneNumbers;
+import com.zds.bioengtsnapp.service.PhoneNumbersService;
+import com.zds.bioengtsnapp.mapper.PhoneNumbersMapper;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 */
 @Service
 public class PhoneNumbersServiceImpl extends ServiceImpl<PhoneNumbersMapper, PhoneNumbers>
-    implements PhoneNumbersService{
+    implements PhoneNumbersService {
 
 }
 

@@ -1,6 +1,6 @@
-package generator.service;
+package com.zds.bioengtsnapp.service;
 
-import generator.domain.Addresses;
+import com.zds.bioengtsnapp.domain.Addresses;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

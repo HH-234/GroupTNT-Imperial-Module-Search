@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="generator.mapper.CoursesMapper">
+<mapper namespace="com.zds.bioengtsnapp.mapper.CoursesMapper">
 
-    <resultMap id="BaseResultMap" type="generator.domain.Courses">
+    <resultMap id="BaseResultMap" type="com.zds.bioengtsnapp.domain.Courses">
             <result property="id" column="id" />
             <result property="courseName" column="course_name" />
             <result property="courseUrl" column="course_url" />
@@ -31,4 +31,5 @@
         location,applications_places,entry_requirement_alevel,entry_requirement_ib,description,
         created_at,updated_at
     </sql>
+
 </mapper>
