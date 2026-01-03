@@ -3,11 +3,13 @@ spring:
     name: bioeng-tsn-app
 
   # Database Configuration (PostgreSQL)
+  # 支持 Tsuru 环境变量：PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
+  # 如果环境变量不存在，则使用本地开发配置
   datasource:
-    url: jdbc:postgresql://localhost:5433/imperial_profiles?currentSchema=public
+    url: ${DATABASE_URL:jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5433}/${PGDATABASE:imperial_profiles}?currentSchema=public}
     driver-class-name: org.postgresql.Driver
-    username: postgres
-    password: 123456
+    username: ${PGUSER:postgres}
+    password: ${PGPASSWORD:123456}
     hikari:
       schema: public
       connection-timeout: 30000
@@ -24,9 +26,9 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
 server:
-  port: 8081
+  port: ${PORT:8081}
 
 deepseek:
   api:
-    key: sk-947999f810174d0a9781edc1b33ac20b
+    key: ${DEEPSEEK_API_KEY:sk-947999f810174d0a9781edc1b33ac20b}
   base-url: https://api.deepseek.com
