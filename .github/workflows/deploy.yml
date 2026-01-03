@@ -56,6 +56,20 @@ jobs:
           # 现在再检查版本（这时就不会报 no target 了）
           tsuru version
 
+      - name: Auth check (whoami / app-list / app-info)
+        env:
+          TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
+        run: |
+          set -e
+          echo "==== tsuru whoami ===="
+          tsuru whoami
+          echo ""
+          echo "==== tsuru app-list ===="
+          tsuru app-list
+          echo ""
+          echo "==== tsuru app-info (must succeed) ===="
+          tsuru app-info -a bioeng-tsn-app
+
       - name: Rename WAR to ROOT.war
         run: |
           ls -lah target
