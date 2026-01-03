@@ -71,16 +71,29 @@ jobs:
           echo "Deploying to Tsuru..."
           tsuru app-deploy -a bioeng-tsn-app ROOT.war
 
-      - name: Post-deploy diagnostics (app-info / units / logs)
+      - name: Post-deploy diagnostics (whoami / targets)
         if: always()
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
-          echo "==== tsuru app-info ===="
-          tsuru app-info -a bioeng-tsn-app || true
+          echo "==== tsuru whoami ===="
+          tsuru whoami || true
           echo ""
-          echo "==== tsuru unit-list ===="
-          tsuru unit-list -a bioeng-tsn-app || true
+          echo "==== tsuru target-list ===="
+          tsuru target-list || true
+
+      - name: Post-deploy HTTP check (curl)
+        if: always()
+        run: |
+          set +e
+          echo "==== curl / (root) ===="
+          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/ | sed -n '1,20p'
           echo ""
-          echo "==== tsuru app-log (last 200 lines) ===="
-          tsuru app-log -a bioeng-tsn-app -l 200 || true
+          echo "==== curl /index.html ===="
+          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/index.html | sed -n '1,20p'
+          echo ""
+          echo "==== curl /courses/search ===="
+          curl -sS -o /dev/null -D - "https://bioeng-tsn-app.impaas.uk/courses/search?courseName=Bio" | sed -n '1,20p'
+          echo ""
+          echo "==== curl /users/search/details ===="
+          curl -sS -o /dev/null -D - "https://bioeng-tsn-app.impaas.uk/users/search/details?fullName=Smith" | sed -n '1,20p'
