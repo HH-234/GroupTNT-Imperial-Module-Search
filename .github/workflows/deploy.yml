@@ -66,6 +66,9 @@ jobs:
           echo "==== curl / (root) ===="
           curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/ | sed -n '1,25p'
           echo ""
+          echo "==== curl /healthz (should be 200 if app is ours) ===="
+          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/healthz | sed -n '1,25p'
+          echo ""
           echo "==== curl /courses/search ===="
           curl -sS -o /dev/null -D - "https://bioeng-tsn-app.impaas.uk/courses/search?courseName=Bio" | sed -n '1,25p'
           echo ""
