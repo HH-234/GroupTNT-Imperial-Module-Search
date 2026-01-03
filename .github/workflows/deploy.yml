@@ -29,52 +29,17 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/tsuru/tsuru-client/master/install.sh | sh
 
-      - name: Debug token length (safe)
-        env:
-          TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
-        run: |
-          echo "TSURU_TOKEN length: ${#TSURU_TOKEN}"
-
       - name: Configure Tsuru Target
         env:
           TSURU_HOST: ${{ secrets.TSURU_HOST }}
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           set -e
-          if [ -z "$TSURU_HOST" ]; then
-            echo "Error: TSURU_HOST is not set!"
-            exit 1
-          fi
-          if [ -z "$TSURU_TOKEN" ]; then
-            echo "Error: TSURU_TOKEN is not set!"
-            exit 1
-          fi
-
           tsuru target-remove default 2>/dev/null || true
           tsuru target-add default "$TSURU_HOST" -s
           tsuru target-list
-
-          # 不要在这里用 tsuru version 让流程提前失败（权限/401时会炸）
-          tsuru version || true
-
-      # --- 权限/范围诊断：你现在最需要看这两个 ---
-      - name: Scope diagnostics (team-list / app-list)
-        env:
-          TSURU_HOST: ${{ secrets.TSURU_HOST }}
-          TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
-        run: |
-          set +e
-          echo "==== tsuru team-list ===="
-          tsuru team-list
-          echo ""
-          echo "==== tsuru app-list ===="
-          tsuru app-list
-          echo ""
-          echo "==== tsuru app-info (bioeng-tsn-app) ===="
-          tsuru app-info -a bioeng-tsn-app
-          echo ""
-          echo "==== tsuru app-log (last 200) ===="
-          tsuru app-log -a bioeng-tsn-app -l 200
+          # 不要跑 tsuru version / app-info / app-log（你没有这些权限）
+          echo "Tsuru target configured."
 
       - name: Rename WAR to ROOT.war
         run: |
@@ -85,30 +50,24 @@ jobs:
           cp "$WAR_FILE" ROOT.war
           ls -lah ROOT.war
 
-      # --- 只有当你对 app 有权限时才尝试部署（否则直接失败没有意义） ---
-      - name: Deploy to Tsuru (only if app-info allowed)
+      - name: Deploy to Tsuru
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           set -e
-          echo "Checking permission for app..."
-          if tsuru app-info -a bioeng-tsn-app >/dev/null 2>&1; then
-            echo "Permission OK. Deploying..."
-            tsuru app-deploy -a bioeng-tsn-app ROOT.war
-          else
-            echo "No permission to access bioeng-tsn-app. Skipping deploy."
-            exit 1
-          fi
+          echo "Deploying to Tsuru..."
+          tsuru app-deploy -a bioeng-tsn-app ROOT.war
+          echo "Deploy command finished."
 
       - name: Post-deploy HTTP check (curl)
         if: always()
         run: |
           set +e
           echo "==== curl / (root) ===="
-          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/ | sed -n '1,20p'
+          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/ | sed -n '1,25p'
           echo ""
           echo "==== curl /courses/search ===="
-          curl -sS -o /dev/null -D - "https://bioeng-tsn-app.impaas.uk/courses/search?courseName=Bio" | sed -n '1,20p'
+          curl -sS -o /dev/null -D - "https://bioeng-tsn-app.impaas.uk/courses/search?courseName=Bio" | sed -n '1,25p'
           echo ""
           echo "==== curl /users/search/details ===="
-          curl -sS -o /dev/null -D - "https://bioeng-tsn-app.impaas.uk/users/search/details?fullName=Smith" | sed -n '1,20p'
+          curl -sS -o /dev/null -D - "https://bioeng-tsn-app.impaas.uk/users/search/details?fullName=Smith" | sed -n '1,25p'
