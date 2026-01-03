@@ -88,7 +88,8 @@ jobs:
             if [ "$ok" = "1" ]; then
               break
             fi
-            echo "try #$i -> no 200 yet (sample: $HOST_BASE/healthz=$(curl -sS -o /dev/null -w \"%{http_code}\" \"$HOST_BASE/healthz\"))"
+            sample_code=$(curl -sS -o /dev/null -w "%{http_code}" "$HOST_BASE/healthz" 2>/dev/null || echo "000")
+            echo "try #$i -> no 200 yet (sample: $HOST_BASE/healthz HTTP $sample_code)"
             sleep 5
           done
 
