@@ -34,6 +34,7 @@ jobs:
           TSURU_HOST: ${{ secrets.TSURU_HOST }}
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
+          set -e
           echo "Setting up Tsuru target..."
 
           if [ -z "$TSURU_HOST" ]; then
@@ -44,34 +45,29 @@ jobs:
           echo "TSURU_HOST: $TSURU_HOST"
           echo "TSURU_TOKEN is set: $([ -n "$TSURU_TOKEN" ] && echo 'yes' || echo 'no')"
 
-          # 先尝试移除旧 target（没有也没关系）
           tsuru target-remove default 2>/dev/null || echo "No existing target to remove"
-
-          # 添加并设为当前 target
           tsuru target-add default $TSURU_HOST -s
 
           echo "Verifying target configuration..."
           tsuru target-list
-
-          # 现在再检查版本（这时就不会报 no target 了）
           tsuru version
 
-      - name: Auth check (whoami / app-list / app-info)
+      - name: Auth check (app-list / app-info)
         env:
+          TSURU_HOST: ${{ secrets.TSURU_HOST }}
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           set -e
-          echo "==== tsuru whoami ===="
-          tsuru whoami
-          echo ""
           echo "==== tsuru app-list ===="
           tsuru app-list
+
           echo ""
-          echo "==== tsuru app-info (must succeed) ===="
+          echo "==== tsuru app-info ===="
           tsuru app-info -a bioeng-tsn-app
 
       - name: Rename WAR to ROOT.war
         run: |
+          set -e
           ls -lah target
           WAR_FILE=$(ls target/*.war | grep -v "\.original$" | head -n 1)
           echo "Found war: $WAR_FILE"
@@ -82,19 +78,27 @@ jobs:
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
+          set -e
           echo "Deploying to Tsuru..."
           tsuru app-deploy -a bioeng-tsn-app ROOT.war
 
-      - name: Post-deploy diagnostics (whoami / targets)
+      - name: Post-deploy diagnostics (targets / logs)
         if: always()
         env:
+          TSURU_HOST: ${{ secrets.TSURU_HOST }}
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
-          echo "==== tsuru whoami ===="
-          tsuru whoami || true
-          echo ""
+          set +e
           echo "==== tsuru target-list ===="
-          tsuru target-list || true
+          tsuru target-list
+
+          echo ""
+          echo "==== tsuru app-info ===="
+          tsuru app-info -a bioeng-tsn-app
+
+          echo ""
+          echo "==== tsuru app-log (last 200) ===="
+          tsuru app-log -a bioeng-tsn-app -l 200
 
       - name: Post-deploy HTTP check (curl)
         if: always()
@@ -102,9 +106,6 @@ jobs:
           set +e
           echo "==== curl / (root) ===="
           curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/ | sed -n '1,20p'
-          echo ""
-          echo "==== curl /index.html ===="
-          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/index.html | sed -n '1,20p'
           echo ""
           echo "==== curl /courses/search ===="
           curl -sS -o /dev/null -D - "https://bioeng-tsn-app.impaas.uk/courses/search?courseName=Bio" | sed -n '1,20p'
