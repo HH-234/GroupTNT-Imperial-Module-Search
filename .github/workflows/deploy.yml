@@ -1,0 +1,53 @@
+name: Deploy to Tsuru
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Build with Maven
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
+
+      - name: Install Tsuru CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/tsuru/tsuru-client/master/install.sh | sh
+          tsuru version
+
+      - name: Add Tsuru Target
+        env:
+          TSURU_HOST: ${{ secrets.TSURU_HOST }}
+          TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
+        run: |
+          tsuru target-add default $TSURU_HOST -s
+
+      - name: Rename WAR to ROOT.war
+        run: |
+          ls -lah target
+          WAR_FILE=$(ls target/*.war | grep -v "\.original$" | head -n 1)
+          echo "Found war: $WAR_FILE"
+          cp "$WAR_FILE" ROOT.war
+          ls -lah ROOT.war
+
+      - name: Deploy to Tsuru
+        env:
+          TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
+        run: |
+          tsuru app-deploy -a bioeng-tsn-app ROOT.war
+
