@@ -70,3 +70,17 @@ jobs:
         run: |
           echo "Deploying to Tsuru..."
           tsuru app-deploy -a bioeng-tsn-app ROOT.war
+
+      - name: Post-deploy diagnostics (app-info / units / logs)
+        if: always()
+        env:
+          TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
+        run: |
+          echo "==== tsuru app-info ===="
+          tsuru app-info -a bioeng-tsn-app || true
+          echo ""
+          echo "==== tsuru unit-list ===="
+          tsuru unit-list -a bioeng-tsn-app || true
+          echo ""
+          echo "==== tsuru app-log (last 200 lines) ===="
+          tsuru app-log -a bioeng-tsn-app -l 200 || true
