@@ -29,6 +29,12 @@ jobs:
         run: |
           curl -fsSL https://raw.githubusercontent.com/tsuru/tsuru-client/master/install.sh | sh
 
+      - name: Debug token length (safe)
+        env:
+          TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
+        run: |
+          echo "TSURU_TOKEN length: ${#TSURU_TOKEN}"
+
       - name: Configure Tsuru Target
         env:
           TSURU_HOST: ${{ secrets.TSURU_HOST }}
@@ -42,7 +48,7 @@ jobs:
             exit 1
           fi
 
-          echo "TSURU_HOST: $TSURU_HOST"
+          echo "TSURU_HOST is set: yes"
           echo "TSURU_TOKEN is set: $([ -n "$TSURU_TOKEN" ] && echo 'yes' || echo 'no')"
 
           tsuru target-remove default 2>/dev/null || echo "No existing target to remove"
@@ -50,7 +56,9 @@ jobs:
 
           echo "Verifying target configuration..."
           tsuru target-list
-          tsuru version
+
+          # avoid failing early while debugging token issues
+          tsuru version || true
 
       - name: Auth check (app-list / app-info)
         env:
