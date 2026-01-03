@@ -6,13 +6,13 @@ spring:
   # 支持 Tsuru 环境变量：PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
   # 如果环境变量不存在，则使用本地开发配置
   datasource:
-    # local 分支默认：连接到本地 postgres 数据库实例，使用 imperial_profiles 作为 schema（你说的“表的名字”更像是 schema）
-    url: ${DATABASE_URL:jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5433}/${PGDATABASE:postgres}?currentSchema=${PGSCHEMA:imperial_profiles}}
+    # local 分支默认：连接到本地数据库 imperial_profiles（schema 默认 public）
+    url: ${DATABASE_URL:jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5433}/${PGDATABASE:imperial_profiles}?currentSchema=${PGSCHEMA:public}}
     driver-class-name: org.postgresql.Driver
     username: ${PGUSER:postgres}
     password: ${PGPASSWORD:123456}
     hikari:
-      schema: ${PGSCHEMA:imperial_profiles}
+      schema: ${PGSCHEMA:public}
       connection-timeout: 30000
       maximum-pool-size: 10
   
