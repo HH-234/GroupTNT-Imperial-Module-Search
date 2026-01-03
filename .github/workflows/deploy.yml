@@ -28,7 +28,6 @@ jobs:
       - name: Install Tsuru CLI
         run: |
           curl -fsSL https://raw.githubusercontent.com/tsuru/tsuru-client/master/install.sh | sh
-          tsuru version
 
       - name: Configure Tsuru Target
         env:
@@ -36,37 +35,26 @@ jobs:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           echo "Setting up Tsuru target..."
-          
-          # 验证环境变量是否设置
+
           if [ -z "$TSURU_HOST" ]; then
             echo "Error: TSURU_HOST is not set!"
             exit 1
           fi
-          
+
           echo "TSURU_HOST: $TSURU_HOST"
           echo "TSURU_TOKEN is set: $([ -n "$TSURU_TOKEN" ] && echo 'yes' || echo 'no')"
-          
-          # 删除可能存在的旧 target
+
+          # 先尝试移除旧 target（没有也没关系）
           tsuru target-remove default 2>/dev/null || echo "No existing target to remove"
-          
-          # 添加新的 target 并设置为当前使用的 target
-          echo "Adding target: default -> $TSURU_HOST"
+
+          # 添加并设为当前 target
           tsuru target-add default $TSURU_HOST -s
-          
-          # 验证 target 配置
+
           echo "Verifying target configuration..."
           tsuru target-list
-          
-          # 显示当前使用的 target
-          CURRENT_TARGET=$(tsuru target-list | grep '*' | awk '{print $1}' || echo "none")
-          echo "Current target: $CURRENT_TARGET"
-          
-          if [ "$CURRENT_TARGET" != "default" ]; then
-            echo "Warning: Current target is not 'default', setting it now..."
-            tsuru target-set default $TSURU_HOST -s
-          fi
-          
-          echo "Target configured successfully"
+
+          # 现在再检查版本（这时就不会报 no target 了）
+          tsuru version
 
       - name: Rename WAR to ROOT.war
         run: |
@@ -78,9 +66,7 @@ jobs:
 
       - name: Deploy to Tsuru
         env:
-          TSURU_HOST: ${{ secrets.TSURU_HOST }}
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           echo "Deploying to Tsuru..."
           tsuru app-deploy -a bioeng-tsn-app ROOT.war
-
