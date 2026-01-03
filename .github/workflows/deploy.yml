@@ -63,42 +63,62 @@ jobs:
         if: always()
         run: |
           set +e
-          BASE="https://bioeng-tsn-app.impaas.uk"
+          HOST_BASE="https://bioeng-tsn-app.impaas.uk"
+          # 可能的 context path（不同平台/容器对 war 命名映射不一致）
+          CANDIDATES=(
+            "$HOST_BASE"
+            "$HOST_BASE/bioeng-tsn-app"
+            "$HOST_BASE/bioeng-tsn-app-0.0.1-SNAPSHOT"
+            "$HOST_BASE/ROOT"
+          )
 
-          echo "==== wait for /healthz (up to 3 minutes) ===="
+          echo "==== wait for any healthz (up to 3 minutes) ===="
           ok=0
+          good_base=""
           for i in $(seq 1 36); do
-            code=$(curl -sS -o /dev/null -w "%{http_code}" "$BASE/healthz")
-            echo "try #$i -> /healthz HTTP $code"
-            if [ "$code" = "200" ]; then
-              ok=1
+            for base in "${CANDIDATES[@]}"; do
+              code=$(curl -sS -o /dev/null -w "%{http_code}" "$base/healthz")
+              if [ "$code" = "200" ]; then
+                ok=1
+                good_base="$base"
+                echo "try #$i -> FOUND $base/healthz HTTP 200"
+                break
+              fi
+            done
+            if [ "$ok" = "1" ]; then
               break
             fi
+            echo "try #$i -> no 200 yet (sample: $HOST_BASE/healthz=$(curl -sS -o /dev/null -w \"%{http_code}\" \"$HOST_BASE/healthz\"))"
             sleep 5
           done
 
           echo ""
-          echo "==== curl / (root) headers ===="
-          curl -sS -o /dev/null -D - "$BASE/" | sed -n '1,25p'
+          echo "==== probe candidates (code + content-type) ===="
+          for base in "${CANDIDATES[@]}"; do
+            ct=$(curl -sS -o /dev/null -w "%{http_code} %{content_type}" "$base/healthz")
+            echo "$base/healthz -> $ct"
+          done
 
           echo ""
-          echo "==== curl /healthz headers ===="
-          curl -sS -o /dev/null -D - "$BASE/healthz" | sed -n '1,25p'
+          echo "==== curl root headers ===="
+          curl -sS -o /dev/null -D - "$HOST_BASE/" | sed -n '1,25p'
 
           echo ""
-          echo "==== curl /healthz body (first 30 lines) ===="
-          curl -sS "$BASE/healthz" | sed -n '1,30p'
-
-          echo ""
-          echo "==== curl /courses/search headers ===="
-          curl -sS -o /dev/null -D - "$BASE/courses/search?courseName=Bio" | sed -n '1,25p'
-
-          echo ""
-          echo "==== curl /users/search/details headers ===="
-          curl -sS -o /dev/null -D - "$BASE/users/search/details?fullName=Smith" | sed -n '1,25p'
+          echo "==== curl chosen /healthz body (first 30 lines) ===="
+          if [ -n "$good_base" ]; then
+            echo "Using base: $good_base"
+            curl -sS "$good_base/healthz" | sed -n '1,30p'
+            echo ""
+            echo "==== curl chosen courses/users headers ===="
+            curl -sS -o /dev/null -D - "$good_base/courses/search?courseName=Bio" | sed -n '1,25p'
+            echo ""
+            curl -sS -o /dev/null -D - "$good_base/users/search/details?fullName=Smith" | sed -n '1,25p'
+          else
+            echo "(no base matched 200)"
+          fi
 
           if [ "$ok" != "1" ]; then
             echo ""
-            echo "ERROR: /healthz never became 200. This usually means the app was not deployed, not started, or the domain points to a default Tomcat."
+            echo "ERROR: no candidate /healthz became 200. This usually means the app was not deployed, not started, or the domain points to a default Tomcat / wrong route."
             exit 1
           fi
