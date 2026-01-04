@@ -75,7 +75,7 @@ jobs:
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
-          tsuru app-deploy -a my-app-name ROOT.war
+          tsuru app-deploy -a bioeng-tsn-app ROOT.war
 
       - name: Deploy to Tsuru
         env:
