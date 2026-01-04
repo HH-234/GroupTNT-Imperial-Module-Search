@@ -13,7 +13,7 @@ import java.util.Map;
 @RestController
 public class HealthController {
 
-    @GetMapping({"/health", "/healthz"})
+    @GetMapping({"health", "/healthz"})
     public Map<String, Object> health() {
         Map<String, Object> resp = new LinkedHashMap<>();
         resp.put("status", "ok");
