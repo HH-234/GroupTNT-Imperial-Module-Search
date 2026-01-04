@@ -12,12 +12,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+      - name: Build
+        run: |
+          chmod +x mvnw
+          ./mvnw -B package
 
       - name: Build with Maven
         run: |
@@ -49,12 +47,3 @@ jobs:
         run: |
           tsuru app-deploy -a bioeng-tsn-app ROOT.war
           echo "Deployment complete!"
-
-      - name: Wait for app startup
-        run: sleep 30
-
-      - name: Verify deployment
-        run: |
-          echo "=== Testing endpoints ==="
-          curl -i https://bioeng-tsn-app.impaas.uk/health || true
-          curl -i https://bioeng-tsn-app.impaas.uk/ || true
