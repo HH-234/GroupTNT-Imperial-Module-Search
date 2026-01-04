@@ -69,7 +69,7 @@ jobs:
 
       - name: Rename war file
         run: |
-          mv ./build/libs/bioeng-tsn-app-0.0.1-SNAPSHOT.war ./ROOT.war
+          mv ./build/libs/bioeng-tsn-app-1.0-SNAPSHOT.war ./ROOT.war
 
       - name: Deploy to Tsuru
         env:
