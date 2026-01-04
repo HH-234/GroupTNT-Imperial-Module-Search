@@ -28,6 +28,10 @@ public class HealthController {
         ));
         return resp;
     }
+    @GetMapping({"/patients"})
+    public Map<String, Object> patients() {
+        return Map.of("patients", "ok");
+    }
 }
 
 
