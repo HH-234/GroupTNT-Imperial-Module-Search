@@ -67,6 +67,16 @@ jobs:
           echo "==== tsuru team-list (optional) ===="
           tsuru team-list || true
 
+      - name: Rename war file
+        run: |
+          mv ./build/libs/bioeng-tsn-app-0.0.1-SNAPSHOT.war ./ROOT.war
+
+      - name: Deploy to Tsuru
+        env:
+          TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
+        run: |
+          tsuru app-deploy -a my-app-name ROOT.war
+
       - name: Deploy to Tsuru
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
