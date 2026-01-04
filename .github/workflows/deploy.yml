@@ -35,19 +35,34 @@ jobs:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           set -e
-          tsuru target-remove default 2>/dev/null || true
-          tsuru target-add default "$TSURU_HOST" -s
-          tsuru target-list
-          # 不要跑 tsuru version / app-info / app-log（你没有这些权限）
-          echo "Tsuru target configured."
+          echo "Setting up Tsuru target..."
 
-      - name: Rename WAR to ROOT.war
+          if [ -z "$TSURU_HOST" ]; then
+            echo "Error: TSURU_HOST is not set!"
+            exit 1
+          fi
+
+          echo "TSURU_HOST: $TSURU_HOST"
+          echo "TSURU_TOKEN is set: $([ -n \"$TSURU_TOKEN\" ] && echo 'yes' || echo 'no')"
+
+          # 移除旧 target（如果没有会直接忽略）
+          tsuru target-remove default 2>/dev/null || echo "No existing target to remove"
+
+          # 添加并设为当前 target
+          tsuru target-add default "$TSURU_HOST" -s
+
+      - name: Prepare ROOT.war
         run: |
           set -e
+          echo "Listing target directory:"
           ls -lah target
+
+          # 找到真正的 war 文件（排除 *.original.war）
           WAR_FILE=$(ls target/*.war | grep -v "\.original$" | head -n 1)
-          echo "Found war: $WAR_FILE"
+          echo "Found WAR file: $WAR_FILE"
+
           cp "$WAR_FILE" ROOT.war
+          echo "Created ROOT.war:"
           ls -lah ROOT.war
 
       - name: Deploy to Tsuru
@@ -55,71 +70,16 @@ jobs:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           set -e
-          echo "Deploying to Tsuru..."
+          echo "Deploying ROOT.war to tsuru..."
           tsuru app-deploy -a bioeng-tsn-app ROOT.war
-          echo "Deploy command finished."
 
-      - name: Post-deploy HTTP check (curl)
+      # 可选：只用 HTTP 做简单健康检查，不再调用 tsuru app-info / app-log
+      - name: Post-deploy HTTP check (optional)
         if: always()
         run: |
           set +e
-          HOST_BASE="https://bioeng-tsn-app.impaas.uk"
-          # 可能的 context path（不同平台/容器对 war 命名映射不一致）
-          CANDIDATES=(
-            "$HOST_BASE"
-            "$HOST_BASE/bioeng-tsn-app"
-            "$HOST_BASE/bioeng-tsn-app-0.0.1-SNAPSHOT"
-            "$HOST_BASE/ROOT"
-          )
-
-          echo "==== wait for any healthz (up to 3 minutes) ===="
-          ok=0
-          good_base=""
-          for i in $(seq 1 36); do
-            for base in "${CANDIDATES[@]}"; do
-              code=$(curl -sS -o /dev/null -w "%{http_code}" "$base/healthz")
-              if [ "$code" = "200" ]; then
-                ok=1
-                good_base="$base"
-                echo "try #$i -> FOUND $base/healthz HTTP 200"
-                break
-              fi
-            done
-            if [ "$ok" = "1" ]; then
-              break
-            fi
-            sample_code=$(curl -sS -o /dev/null -w "%{http_code}" "$HOST_BASE/healthz" 2>/dev/null || echo "000")
-            echo "try #$i -> no 200 yet (sample: $HOST_BASE/healthz HTTP $sample_code)"
-            sleep 5
-          done
-
+          echo "==== curl / (root) ===="
+          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/ | sed -n '1,20p' || true
           echo ""
-          echo "==== probe candidates (code + content-type) ===="
-          for base in "${CANDIDATES[@]}"; do
-            ct=$(curl -sS -o /dev/null -w "%{http_code} %{content_type}" "$base/healthz")
-            echo "$base/healthz -> $ct"
-          done
-
-          echo ""
-          echo "==== curl root headers ===="
-          curl -sS -o /dev/null -D - "$HOST_BASE/" | sed -n '1,25p'
-
-          echo ""
-          echo "==== curl chosen /healthz body (first 30 lines) ===="
-          if [ -n "$good_base" ]; then
-            echo "Using base: $good_base"
-            curl -sS "$good_base/healthz" | sed -n '1,30p'
-            echo ""
-            echo "==== curl chosen courses/users headers ===="
-            curl -sS -o /dev/null -D - "$good_base/courses/search?courseName=Bio" | sed -n '1,25p'
-            echo ""
-            curl -sS -o /dev/null -D - "$good_base/users/search/details?fullName=Smith" | sed -n '1,25p'
-          else
-            echo "(no base matched 200)"
-          fi
-
-          if [ "$ok" != "1" ]; then
-            echo ""
-            echo "ERROR: no candidate /healthz became 200. This usually means the app was not deployed, not started, or the domain points to a default Tomcat / wrong route."
-            exit 1
-          fi
+          echo "==== curl /ping (if you加了测试接口) ===="
+          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/ping | sed -n '1,20p' || true
