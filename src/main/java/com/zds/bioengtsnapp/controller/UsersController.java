@@ -20,18 +20,8 @@ public class UsersController {
      * @param fullName 用户全名
      * @return 用户基本信息列表
      */
-    @GetMapping("users/search")
+    @GetMapping("/users/search")
     public List<Users> searchByFullName(@RequestParam String fullName) {
         return usersService.getUsersByFullName(fullName);
-    }
-
-    /**
-     * 根据全名搜索用户详细信息（包含手机号码和地址）
-     * @param fullName 用户全名
-     * @return 用户详细信息列表（包含手机、地址、discovery_url_id等）
-     */
-    @GetMapping("/search/details")
-    public List<UserDetailDTO> searchDetailsByFullName(@RequestParam String fullName) {
-        return usersService.getUserDetailsByFullName(fullName);
     }
 }
