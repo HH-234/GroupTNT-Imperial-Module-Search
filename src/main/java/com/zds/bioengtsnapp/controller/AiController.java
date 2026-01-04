@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("ai")
 public class AiController {
 
     private final DeepSeekService deepSeekService;
@@ -15,7 +14,7 @@ public class AiController {
         this.deepSeekService = deepSeekService;
     }
 
-    @PostMapping("/chat")
+    @PostMapping("ai/chat")
     public Map<String, String> chat(@RequestBody Map<String, String> payload) {
         String message = payload.get("message");
         String response = deepSeekService.chat(message);

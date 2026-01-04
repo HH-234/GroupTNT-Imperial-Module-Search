@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("users")
 public class UsersController {
 
     private final UsersService usersService;
@@ -21,7 +20,7 @@ public class UsersController {
      * @param fullName 用户全名
      * @return 用户基本信息列表
      */
-    @GetMapping("/search")
+    @GetMapping("users/search")
     public List<Users> searchByFullName(@RequestParam String fullName) {
         return usersService.getUsersByFullName(fullName);
     }
