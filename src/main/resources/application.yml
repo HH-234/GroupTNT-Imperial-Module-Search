@@ -1,6 +1,9 @@
 spring:
   application:
     name: bioeng-tsn-app
+  main:
+    # 同时依赖 web + webflux（为了 WebClient / Mono）时，强制以 Servlet(Tomcat) 模式启动
+    web-application-type: servlet
 
   # Database Configuration (PostgreSQL)
   # 支持 Tsuru 环境变量：PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
