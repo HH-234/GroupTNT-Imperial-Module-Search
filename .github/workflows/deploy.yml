@@ -12,12 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Build
-        run: |
-          chmod +x mvnw
-          ./mvnw -B package
 
-      - name: Build with Maven
+      - name: Build (Maven, skip tests)
         run: |
           chmod +x mvnw
           ./mvnw -B package -DskipTests
@@ -35,6 +31,8 @@ jobs:
           TSURU_HOST: ${{ secrets.TSURU_HOST }}
         run: |
           tsuru target-add default $TSURU_HOST -s
+          tsuru target-set default
+          tsuru target-list
 
       - name: Rename war file
         run: |

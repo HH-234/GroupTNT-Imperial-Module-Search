@@ -803,11 +803,11 @@
 
             try {
                 if (currentType === 'course') {
-                    const res = await fetch(`courses/search?courseName=${encodeURIComponent(query)}`);
+                    const res = await fetch(`/courses/search?courseName=${encodeURIComponent(query)}`);
                     const data = await res.json();
                     renderCourseList(data);
                 } else {
-                    const res = await fetch(`users/search/details?fullName=${encodeURIComponent(query)}`);
+                    const res = await fetch(`/users/search/details?fullName=${encodeURIComponent(query)}`);
                     const data = await res.json();
                     renderUserList(data);
                 }

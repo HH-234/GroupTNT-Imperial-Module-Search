@@ -1,6 +1,7 @@
 spring:
   application:
     name: bioeng-tsn-app
+
   main:
     # 同时依赖 web + webflux（为了 WebClient / Mono）时，强制以 Servlet(Tomcat) 模式启动
     web-application-type: servlet
@@ -11,7 +12,7 @@ spring:
   # Tsuru 环境变量：PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
   # 本地开发时使用默认值
   datasource:
-    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5433}/${PGDATABASE:imperial_profiles}
+    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:imperial_profiles}
     driver-class-name: org.postgresql.Driver
     username: ${PGUSER:postgres}
     password: ${PGPASSWORD:123456}
@@ -20,11 +21,11 @@ spring:
       maximum-pool-size: 10
       # 允许启动时数据库暂时不可用（延迟连接验证）
       initialization-fail-timeout: -1
-  
+
   # Transaction Management
   transaction:
     default-timeout: 30
-  
+
   # 禁用自动执行 SQL 初始化脚本（防止启动时因脚本失败而崩溃）
   sql:
     init:
