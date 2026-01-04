@@ -1,0 +1,63 @@
+plugins {
+    id 'java'
+    id 'war'
+    id 'org.springframework.boot' version '2.7.18'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+}
+
+group = 'com.zds'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot Web (exclude embedded Tomcat)
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
+    
+    // Provided Tomcat for external deployment
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    
+    // MyBatis Plus
+    implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.7'
+    
+    // Database Drivers
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    runtimeOnly 'com.h2database:h2'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+// Disable Spring Boot repackage to produce standard WAR for external Tomcat
+bootWar {
+    enabled = false
+}
+
+war {
+    enabled = true
+    archiveFileName = 'bioeng-tsn-app-0.0.1-SNAPSHOT.war'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
