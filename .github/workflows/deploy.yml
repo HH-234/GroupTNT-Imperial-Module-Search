@@ -2,9 +2,8 @@ name: Deploy to Tsuru
 
 on:
   push:
-    branches:
-      - master
-      - main
+    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -12,74 +11,78 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Java 17 (with Maven cache)
         uses: actions/setup-java@v4
         with:
-          distribution: "temurin"
+          distribution: temurin
           java-version: "17"
+          cache: maven
 
-      - name: Build with Maven
+      - name: Build WAR with Maven
         run: |
+          set -e
           chmod +x mvnw
-          ./mvnw clean package -DskipTests
+          ./mvnw -DskipTests clean package
+          echo "==== target/ ===="
+          ls -lah target
+
+      - name: Prepare ROOT.war
+        run: |
+          set -e
+          # 找到真正的 war（排除 *.original.war）
+          WAR_FILE="$(ls -1 target/*.war | grep -v '\.original\.war$' | head -n 1)"
+          if [ -z "$WAR_FILE" ]; then
+            echo "ERROR: No .war found in target/"
+            exit 1
+          fi
+          echo "Found WAR: $WAR_FILE"
+          cp "$WAR_FILE" ROOT.war
+          echo "ROOT.war:"
+          ls -lah ROOT.war
 
       - name: Install Tsuru CLI
         run: |
+          set -e
           curl -fsSL https://raw.githubusercontent.com/tsuru/tsuru-client/master/install.sh | sh
+          tsuru version || true
 
-      - name: Configure Tsuru Target
+      - name: Configure Tsuru target (no app-info/app-log calls)
         env:
           TSURU_HOST: ${{ secrets.TSURU_HOST }}
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           set -e
-          echo "Setting up Tsuru target..."
-
           if [ -z "$TSURU_HOST" ]; then
-            echo "Error: TSURU_HOST is not set!"
+            echo "ERROR: TSURU_HOST is empty"
             exit 1
           fi
 
-          echo "TSURU_HOST: $TSURU_HOST"
-          echo "TSURU_TOKEN is set: $([ -n \"$TSURU_TOKEN\" ] && echo 'yes' || echo 'no')"
+          echo "TSURU_TOKEN length: ${#TSURU_TOKEN}"
 
-          # 移除旧 target（如果没有会直接忽略）
-          tsuru target-remove default 2>/dev/null || echo "No existing target to remove"
-
-          # 添加并设为当前 target
+          tsuru target-remove default 2>/dev/null || true
           tsuru target-add default "$TSURU_HOST" -s
 
-      - name: Prepare ROOT.war
-        run: |
-          set -e
-          echo "Listing target directory:"
-          ls -lah target
-
-          # 找到真正的 war 文件（排除 *.original.war）
-          WAR_FILE=$(ls target/*.war | grep -v "\.original$" | head -n 1)
-          echo "Found WAR file: $WAR_FILE"
-
-          cp "$WAR_FILE" ROOT.war
-          echo "Created ROOT.war:"
-          ls -lah ROOT.war
+          echo "==== tsuru team-list (optional) ===="
+          tsuru team-list || true
 
       - name: Deploy to Tsuru
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           set -e
-          echo "Deploying ROOT.war to tsuru..."
           tsuru app-deploy -a bioeng-tsn-app ROOT.war
 
-      # 可选：只用 HTTP 做简单健康检查，不再调用 tsuru app-info / app-log
-      - name: Post-deploy HTTP check (optional)
+      - name: Post-deploy HTTP checks
         if: always()
         run: |
           set +e
-          echo "==== curl / (root) ===="
-          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/ | sed -n '1,20p' || true
+          echo "==== curl /health ===="
+          curl -sS -D - https://bioeng-tsn-app.impaas.uk/health -o /dev/null | sed -n '1,25p'
           echo ""
-          echo "==== curl /ping (if you加了测试接口) ===="
-          curl -sS -o /dev/null -D - https://bioeng-tsn-app.impaas.uk/ping | sed -n '1,20p' || true
+          echo "==== curl /index.html ===="
+          curl -sS -D - https://bioeng-tsn-app.impaas.uk/index.html -o /dev/null | sed -n '1,25p'
+          echo ""
+          echo "==== curl / (root) ===="
+          curl -sS -D - https://bioeng-tsn-app.impaas.uk/ -o /dev/null | sed -n '1,25p'
