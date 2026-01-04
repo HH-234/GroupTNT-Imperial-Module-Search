@@ -10,7 +10,8 @@ import java.util.Map;
 @RestController
 public class HealthController {
 
-    @GetMapping({"/", "/health", "/healthz"})
+    // 不占用根路径 / ，让 static/index.html 能作为主页展示
+    @GetMapping({"/health", "/healthz"})
     public Map<String, Object> health() {
         Map<String, Object> resp = new LinkedHashMap<>();
         resp.put("status", "ok");

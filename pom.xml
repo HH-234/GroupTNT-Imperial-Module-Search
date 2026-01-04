@@ -106,6 +106,9 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!-- Tsuru 平台是外部 Tomcat（start-tomcat），需要“标准 WAR（WEB-INF/classes）”。
+                         禁用 repackage，避免生成 BOOT-INF 结构导致 Tomcat 无法加载 Spring Boot 应用。 -->
+                    <skip>true</skip>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
