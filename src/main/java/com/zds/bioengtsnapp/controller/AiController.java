@@ -2,7 +2,6 @@ package com.zds.bioengtsnapp.controller;
 
 import com.zds.bioengtsnapp.service.DeepSeekService;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
@@ -17,9 +16,9 @@ public class AiController {
     }
 
     @PostMapping("/chat")
-    public Mono<Map<String, String>> chat(@RequestBody Map<String, String> payload) {
+    public Map<String, String> chat(@RequestBody Map<String, String> payload) {
         String message = payload.get("message");
-        return deepSeekService.chat(message)
-                .map(response -> Map.of("response", response));
+        String response = deepSeekService.chat(message);
+        return Map.of("response", response);
     }
 }
