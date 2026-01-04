@@ -26,20 +26,20 @@ jobs:
           chmod +x mvnw
           ./mvnw -DskipTests clean package
           echo "==== target/ ===="
-          ls -lah target
+          ls -lah target/*.war || echo "No WAR files found"
 
       - name: Prepare ROOT.war
         run: |
           set -e
           # 找到真正的 war（排除 *.original.war）
-          WAR_FILE="$(ls -1 target/*.war | grep -v '\.original\.war$' | head -n 1)"
+          WAR_FILE="$(ls -1 target/*.war 2>/dev/null | grep -v '\.original\.war$' | head -n 1)"
           if [ -z "$WAR_FILE" ]; then
             echo "ERROR: No .war found in target/"
             exit 1
           fi
           echo "Found WAR: $WAR_FILE"
           cp "$WAR_FILE" ROOT.war
-          echo "ROOT.war:"
+          echo "ROOT.war size:"
           ls -lah ROOT.war
 
       - name: Install Tsuru CLI
@@ -48,7 +48,7 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/tsuru/tsuru-client/master/install.sh | sh
           tsuru version || true
 
-      - name: Configure Tsuru target (no app-info/app-log calls)
+      - name: Configure Tsuru target
         env:
           TSURU_HOST: ${{ secrets.TSURU_HOST }}
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
@@ -58,41 +58,40 @@ jobs:
             echo "ERROR: TSURU_HOST is empty"
             exit 1
           fi
-
           echo "TSURU_TOKEN length: ${#TSURU_TOKEN}"
-
           tsuru target-remove default 2>/dev/null || true
           tsuru target-add default "$TSURU_HOST" -s
-
-          echo "==== tsuru team-list (optional) ===="
-          tsuru team-list || true
-
-      - name: Rename war file
-        run: |
-          mv ./build/libs/bioeng-tsn-app-1.0-SNAPSHOT.war ./ROOT.war
-
-      - name: Deploy to Tsuru
-        env:
-          TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
-        run: |
-          tsuru app-deploy -a bioeng-tsn-app ROOT.war
 
       - name: Deploy to Tsuru
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
           set -e
+          echo "Deploying ROOT.war to Tsuru..."
           tsuru app-deploy -a bioeng-tsn-app ROOT.war
+          echo "Deploy completed!"
+
+      - name: Wait for app to start
+        run: |
+          echo "Waiting 60 seconds for app to start..."
+          sleep 60
 
       - name: Post-deploy HTTP checks
         if: always()
         run: |
           set +e
-          echo "==== curl /health ===="
-          curl -sS -D - https://bioeng-tsn-app.impaas.uk/health -o /dev/null | sed -n '1,25p'
+          HOST="https://bioeng-tsn-app.impaas.uk"
+          
+          echo "==== Testing endpoints ===="
+          for endpoint in "/" "/health" "/healthz" "/index.html"; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" "$HOST$endpoint")
+            echo "$HOST$endpoint -> HTTP $code"
+          done
+          
           echo ""
-          echo "==== curl /index.html ===="
-          curl -sS -D - https://bioeng-tsn-app.impaas.uk/index.html -o /dev/null | sed -n '1,25p'
+          echo "==== curl /health body ===="
+          curl -sS "$HOST/health" | head -20
+          
           echo ""
-          echo "==== curl / (root) ===="
-          curl -sS -D - https://bioeng-tsn-app.impaas.uk/ -o /dev/null | sed -n '1,25p'
+          echo "==== curl / headers ===="
+          curl -sS -D - "$HOST/" -o /dev/null | head -15
