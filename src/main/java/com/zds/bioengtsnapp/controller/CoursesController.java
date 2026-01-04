@@ -20,7 +20,7 @@ public class CoursesController {
      * @param courseName 课程名称
      * @return 课程详细信息列表（包含课程和课程模块的所有数据）
      */
-    @GetMapping("courses/search")
+    @GetMapping("/courses/search")
     public List<CourseDetailDTO> searchByCourseName(@RequestParam String courseName) {
         return coursesService.getCourseDetailsByCourseName(courseName);
     }

@@ -14,7 +14,7 @@ public class AiController {
         this.deepSeekService = deepSeekService;
     }
 
-    @PostMapping("ai/chat")
+    @PostMapping("/ai/chat")
     public Map<String, String> chat(@RequestBody Map<String, String> payload) {
         String message = payload.get("message");
         String response = deepSeekService.chat(message);

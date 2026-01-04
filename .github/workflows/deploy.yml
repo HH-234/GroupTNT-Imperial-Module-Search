@@ -3,7 +3,6 @@ name: Deploy to Tsuru
 on:
   push:
     branches: [ "main", "master" ]
-  workflow_dispatch:
 
 jobs:
   deploy:
@@ -11,87 +10,32 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Set up Java 17 (with Maven cache)
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: maven
 
-      - name: Build WAR with Maven
+      - name: Build
         run: |
-          set -e
-          chmod +x mvnw
-          ./mvnw -DskipTests clean package
-          echo "==== target/ ===="
-          ls -lah target/*.war || echo "No WAR files found"
-
-      - name: Prepare ROOT.war
-        run: |
-          set -e
-          # 找到真正的 war（排除 *.original.war）
-          WAR_FILE="$(ls -1 target/*.war 2>/dev/null | grep -v '\.original\.war$' | head -n 1)"
-          if [ -z "$WAR_FILE" ]; then
-            echo "ERROR: No .war found in target/"
-            exit 1
-          fi
-          echo "Found WAR: $WAR_FILE"
-          cp "$WAR_FILE" ROOT.war
-          echo "ROOT.war size:"
-          ls -lah ROOT.war
+          chmod +x gradlew
+          ./gradlew build
 
       - name: Install Tsuru CLI
         run: |
-          set -e
           curl -fsSL https://raw.githubusercontent.com/tsuru/tsuru-client/master/install.sh | sh
-          tsuru version || true
+          echo "Tsuru CLI installed"
 
-      - name: Configure Tsuru target
+      - name: Add Target
         env:
-          TSURU_HOST: ${{ secrets.TSURU_HOST }}
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
+          TSURU_HOST: ${{ secrets.TSURU_HOST }}
         run: |
-          set -e
-          if [ -z "$TSURU_HOST" ]; then
-            echo "ERROR: TSURU_HOST is empty"
-            exit 1
-          fi
-          echo "TSURU_TOKEN length: ${#TSURU_TOKEN}"
-          tsuru target-remove default 2>/dev/null || true
-          tsuru target-add default "$TSURU_HOST" -s
+          tsuru target-add default $TSURU_HOST -s
+
+      - name: Rename war file
+        run: |
+          mv ./build/libs/bioeng-tsn-app-0.0.1-SNAPSHOT.war ./ROOT.war
 
       - name: Deploy to Tsuru
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
-          set -e
-          echo "Deploying ROOT.war to Tsuru..."
           tsuru app-deploy -a bioeng-tsn-app ROOT.war
-          echo "Deploy completed!"
-
-      - name: Wait for app to start
-        run: |
-          echo "Waiting 60 seconds for app to start..."
-          sleep 60
-
-      - name: Post-deploy HTTP checks
-        if: always()
-        run: |
-          set +e
-          HOST="https://bioeng-tsn-app.impaas.uk"
-          
-          echo "==== Testing endpoints ===="
-          for endpoint in "/" "/health" "/healthz" "/index.html"; do
-            code=$(curl -sS -o /dev/null -w "%{http_code}" "$HOST$endpoint")
-            echo "$HOST$endpoint -> HTTP $code"
-          done
-          
-          echo ""
-          echo "==== curl /health body ===="
-          curl -sS "$HOST/health" | head -20
-          
-          echo ""
-          echo "==== curl / headers ===="
-          curl -sS -D - "$HOST/" -o /dev/null | head -15
