@@ -23,13 +23,11 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot Web (exclude embedded Tomcat)
-    implementation('org.springframework.boot:spring-boot-starter-web') {
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
-    }
+    // Spring Boot Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     
-    // Provided Tomcat for external deployment
-    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    // Provided Tomcat for external deployment (compile + provided)
+    providedCompile 'org.springframework.boot:spring-boot-starter-tomcat'
     
     // MyBatis Plus
     implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.7'
