@@ -1,5 +1,6 @@
 package com.zds.bioengtsnapp.controller;
 
+import com.zds.bioengtsnapp.config.DatabaseConnectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +10,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -22,9 +21,6 @@ import java.util.*;
 public class HealthController {
 
     private static final Logger logger = LoggerFactory.getLogger(HealthController.class);
-
-    @Autowired
-    private DataSource dataSource;
 
     @Autowired
     private RequestMappingHandlerMapping requestMappingHandlerMapping;
@@ -89,20 +85,48 @@ public class HealthController {
     }
 
     /**
-     * 检查数据库连接
+     * 检查数据库连接 - 使用 DatabaseConnectionUtil 工具类
      */
     private Map<String, Object> checkDatabaseConnection() {
         Map<String, Object> dbStatus = new LinkedHashMap<>();
-        try (Connection conn = dataSource.getConnection()) {
+        
+        // 检查环境变量是否配置完整
+        if (!DatabaseConnectionUtil.isConfigured()) {
+            dbStatus.put("connected", false);
+            dbStatus.put("message", "Missing database environment variables");
+            dbStatus.put("error", DatabaseConnectionUtil.getConfigStatus());
+            return dbStatus;
+        }
+        
+        String jdbcUrl = DatabaseConnectionUtil.getJdbcUrl();
+        logger.info("Attempting database connection to: {}", jdbcUrl);
+        
+        Connection conn = null;
+        try {
+            // 使用 DatabaseConnectionUtil 获取连接
+            conn = DatabaseConnectionUtil.getConnection();
+            
             dbStatus.put("connected", true);
             dbStatus.put("message", "Database connection successful");
             dbStatus.put("databaseProductName", conn.getMetaData().getDatabaseProductName());
             dbStatus.put("databaseProductVersion", conn.getMetaData().getDatabaseProductVersion());
-            dbStatus.put("url", conn.getMetaData().getURL());
+            dbStatus.put("url", jdbcUrl);
+            
+            logger.info("Database connection successful: {}", conn.getMetaData().getDatabaseProductName());
         } catch (Exception e) {
             dbStatus.put("connected", false);
             dbStatus.put("message", "Database connection failed");
             dbStatus.put("error", e.getMessage());
+            logger.error("Database connection failed: {}", e.getMessage());
+        } finally {
+            // 关闭连接
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    logger.warn("Failed to close database connection", e);
+                }
+            }
         }
         return dbStatus;
     }
