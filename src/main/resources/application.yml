@@ -11,15 +11,21 @@ spring:
   # Database Configuration (PostgreSQL)
   # Tsuru 环境变量：PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
   # 本地开发时使用默认值
+
   datasource:
-    url: jdbc:postgresql://127.0.0.1:5432/imperial_profiles
-    username: postgres
     driver-class-name: org.postgresql.Driver
-    password: 123456
+    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
 
   # Transaction Management
   transaction:
     default-timeout: 30
+
+  # 禁用自动执行 SQL 初始化脚本（防止启动时因脚本失败而崩溃）
+  sql:
+    init:
+      mode: never
 
 # MyBatis Plus
 mybatis-plus:
