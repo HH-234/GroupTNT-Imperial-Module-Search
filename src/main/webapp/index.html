@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BioEng App</title>
+    <title>bioeng-tsn-app</title>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Marked.js for Markdown -->
@@ -983,6 +983,17 @@
                 <div id="userListContainer" class="user-grid-container">
                     <div style="text-align:center; color:#94a3b8; padding:20px; grid-column: 1/-1;">No results yet</div>
                 </div>
+                
+                <!-- Pagination Controls -->
+                <div class="pagination-controls hidden" id="userPagination">
+                    <button class="pagination-btn" onclick="changePage(-1)">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span class="page-info" id="userPageInfo">Page 1</span>
+                    <button class="pagination-btn" onclick="changePage(1)">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Right Column: Contact Card -->
@@ -1042,6 +1053,12 @@
     <script>
         let currentType = 'course';
         let currentData = [];
+        
+        // Pagination State
+        let currentPage = 1;
+        let pageSize = 6; // 每页显示数量
+        let totalPages = 1;
+        let totalRecords = 0;
 
         function init() {
             setSearchType('course');
@@ -1049,6 +1066,10 @@
 
         function setSearchType(type) {
             currentType = type;
+            // Reset pagination
+            currentPage = 1;
+            currentData = [];
+            
             document.querySelectorAll('.type-option').forEach(el => el.classList.remove('active'));
             
             if (type === 'course') {
@@ -1056,55 +1077,97 @@
                 document.getElementById('searchInput').placeholder = "Search for modules by name...";
                 document.getElementById('courseLayout').classList.remove('hidden');
                 document.getElementById('userLayout').classList.add('hidden');
+                document.getElementById('courseListContainer').innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">Use search to find courses</div>';
+                document.getElementById('coursePagination').classList.add('hidden');
             } else {
                 document.querySelector('.type-option:last-child').classList.add('active');
                 document.getElementById('searchInput').placeholder = "Search for people by name...";
                 document.getElementById('courseLayout').classList.add('hidden');
                 document.getElementById('userLayout').classList.remove('hidden');
+                document.getElementById('userListContainer').innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px; grid-column: 1/-1;">Use search to find people</div>';
+                document.getElementById('userPagination').classList.add('hidden');
             }
         }
 
         function handleEnter(e) {
-            if(e.key === 'Enter') performSearch();
+            if(e.key === 'Enter') {
+                currentPage = 1; // Reset to page 1 on new search
+                performSearch();
+            }
+        }
+        
+        function changePage(delta) {
+            const newPage = currentPage + delta;
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                performSearch();
+            }
         }
 
         async function performSearch() {
             const query = document.getElementById('searchInput').value;
             const btn = document.querySelector('.search-wrapper button');
             const originalText = btn.innerHTML;
+            
+            // If triggered by button click, reset page to 1
+            if (event && event.type === 'click' && event.currentTarget === btn) {
+                currentPage = 1;
+            }
+            
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
                 if (currentType === 'course') {
-                    const res = await fetch(`/courses/search?courseName=${encodeURIComponent(query)}`);
+                    console.log('Fetching courses...');
+                    const res = await fetch(`/courses/search?courseName=${encodeURIComponent(query)}&page=${currentPage}&size=${pageSize}`);
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                     const data = await res.json();
+                    console.log('Received course data:', data);
                     renderCourseList(data);
                 } else {
-                    const res = await fetch(`/users/search/details?fullName=${encodeURIComponent(query)}`);
+                    console.log('Fetching users...');
+                    const res = await fetch(`/users/search/details?fullName=${encodeURIComponent(query)}&page=${currentPage}&size=${pageSize}`);
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                     const data = await res.json();
+                    console.log('Received user data:', data);
                     renderUserList(data);
                 }
             } catch (err) {
-                console.error(err);
-                alert('Search failed. Please check backend connection.');
+                console.error('Search error:', err);
+                alert(`Search failed: ${err.message}. See console for details.`);
             } finally {
                 btn.innerHTML = originalText;
             }
         }
 
         // ================= COURSE RENDERERS =================
-        function renderCourseList(data) {
-            currentData = data;
-            const container = document.getElementById('courseListContainer');
-            document.getElementById('courseCount').innerText = `Showing ${data.length} results`;
+        function renderCourseList(pageData) {
+            // Handle MyBatis Plus Page object structure
+            const records = pageData.records || [];
+            currentData = records;
             
-            if (!data || data.length === 0) {
+            // Update pagination state
+            totalPages = pageData.pages || 1;
+            totalRecords = pageData.total || 0;
+            
+            const container = document.getElementById('courseListContainer');
+            const countEl = document.getElementById('courseCount');
+            const paginationEl = document.getElementById('coursePagination');
+            
+            countEl.innerText = `Showing ${records.length} of ${totalRecords} results`;
+            
+            if (!records || records.length === 0) {
                 container.innerHTML = '<div style="text-align:center; padding:20px;">No courses found</div>';
+                paginationEl.classList.add('hidden');
                 return;
             }
+            
+            // Show/Update pagination
+            paginationEl.classList.remove('hidden');
+            updatePaginationControls('course');
 
             let html = '';
-            data.forEach((course, index) => {
+            records.forEach((course, index) => {
                 html += `
                 <div class="list-item" style="cursor:pointer;" onclick="renderCourseDetail(${index})">
                     <div class="item-main">
@@ -1124,7 +1187,20 @@
             container.innerHTML = html;
 
             // Auto-select first item
-            if (data.length > 0) renderCourseDetail(0);
+            if (records.length > 0) renderCourseDetail(0);
+        }
+
+        function updatePaginationControls(type) {
+            const prefix = type === 'course' ? 'course' : 'user';
+            const pageInfo = document.getElementById(`${prefix}PageInfo`);
+            const container = document.getElementById(`${prefix}Pagination`);
+            const prevBtn = container.querySelector('button:first-child');
+            const nextBtn = container.querySelector('button:last-child');
+            
+            pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
+            
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
         }
 
         function renderCourseDetail(index) {
@@ -1615,54 +1691,6 @@
 
             try {
                 const response = await fetch('ai/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ message: message })
-                });
-
-                const data = await response.json();
-                
-                // Remove loading and add response
-                document.getElementById(loadingId).remove();
-                addMessage(data.response, 'ai');
-
-            } catch (error) {
-                console.error('Chat error:', error);
-                document.getElementById(loadingId).remove();
-                addMessage('Sorry, I encountered an error. Please try again later.', 'ai');
-            }
-        }
-
-        function addMessage(text, sender, isLoading = false) {
-            const container = document.getElementById('chatMessages');
-            const div = document.createElement('div');
-            div.className = `message ${sender}`;
-            
-            if (isLoading) {
-                div.id = 'loading-' + Date.now();
-                div.style.fontStyle = 'italic';
-                div.style.color = '#64748b';
-                div.textContent = text;
-            } else {
-                // Use marked to parse markdown
-                // Configure marked to break on single newlines
-                marked.setOptions({
-                    breaks: true,
-                    gfm: true
-                });
-                
-                div.innerHTML = marked.parse(text);
-            }
-
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-            return div.id;
-        }
-    </script>
-</body>
-</html>
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

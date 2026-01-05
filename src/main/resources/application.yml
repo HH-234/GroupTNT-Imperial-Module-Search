@@ -18,7 +18,6 @@ spring:
     driver-class-name: org.postgresql.Driver
     password: 123456
 
-
   # Transaction Management
   transaction:
     default-timeout: 30
