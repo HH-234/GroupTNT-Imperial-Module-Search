@@ -4,6 +4,7 @@ import com.zds.bioengtsnapp.service.DeepSeekService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 public class AiController {
@@ -18,6 +19,8 @@ public class AiController {
     public Map<String, String> chat(@RequestBody Map<String, String> payload) {
         String message = payload.get("message");
         String response = deepSeekService.chat(message);
-        return Map.of("response", response);
+        Map<String, String> result = new HashMap<>();
+        result.put("response", response);
+        return result;
     }
 }

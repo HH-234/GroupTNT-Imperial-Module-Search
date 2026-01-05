@@ -64,14 +64,14 @@ public class HealthController {
         resp.put("apis", apiList);
 
         // 4. 环境变量（仅显示是否存在，不暴露值）
-        resp.put("env", Map.of(
-                "PGHOST", System.getenv("PGHOST") != null,
-                "PGPORT", System.getenv("PGPORT") != null,
-                "PGDATABASE", System.getenv("PGDATABASE") != null,
-                "PGUSER", System.getenv("PGUSER") != null,
-                "PGPASSWORD", System.getenv("PGPASSWORD") != null,
-                "PORT", System.getenv("PORT") != null
-        ));
+        Map<String, Boolean> envMap = new HashMap<>();
+        envMap.put("PGHOST", System.getenv("PGHOST") != null);
+        envMap.put("PGPORT", System.getenv("PGPORT") != null);
+        envMap.put("PGDATABASE", System.getenv("PGDATABASE") != null);
+        envMap.put("PGUSER", System.getenv("PGUSER") != null);
+        envMap.put("PGPASSWORD", System.getenv("PGPASSWORD") != null);
+        envMap.put("PORT", System.getenv("PORT") != null);
+        resp.put("env", envMap);
 
         long totalDuration = System.currentTimeMillis() - startTime;
         logger.info("Heartbeat request processed in {} ms", totalDuration);
@@ -83,7 +83,9 @@ public class HealthController {
      */
     @GetMapping("/ping")
     public Map<String, String> ping() {
-        return Map.of("pong", Instant.now().toString());
+        Map<String, String> result = new HashMap<>();
+        result.put("pong", Instant.now().toString());
+        return result;
     }
 
     /**
