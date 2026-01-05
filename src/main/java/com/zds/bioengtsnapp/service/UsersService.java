@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,7 +35,7 @@ public class UsersService {
             allDetails = usersMapper.getUserDetailsByFullName(fullName);
         } else {
             // 如果没有提供名称，返回空列表或所有用户（根据业务需求）
-            allDetails = Collections.emptyList();
+            allDetails = List.of();
         }
         
         // 手动分页
@@ -44,7 +43,7 @@ public class UsersService {
         int start = (page - 1) * size;
         int end = Math.min(start + size, total);
         
-        List<UserDetailDTO> pagedList = start < total ? allDetails.subList(start, end) : Collections.emptyList();
+        List<UserDetailDTO> pagedList = start < total ? allDetails.subList(start, end) : List.of();
         
         // 合并相同用户的 phoneNumbers 和 addresses
         Map<Long, UserDetailDTO> userMap = pagedList.stream()
