@@ -4,6 +4,7 @@ com\zds\bioengtsnapp\dto\CourseDetailDTO.class
 com\zds\bioengtsnapp\domain\PhoneNumbers.class
 com\zds\bioengtsnapp\config\DeepSeekConfig.class
 com\zds\bioengtsnapp\dto\DeepSeekRequest$Message.class
+com\zds\bioengtsnapp\controller\EnvDebugConfig.class
 com\zds\bioengtsnapp\service\DeepSeekService.class
 com\zds\bioengtsnapp\mapper\CourseModulesMapper.class
 com\zds\bioengtsnapp\dto\UserDetailDTO.class
