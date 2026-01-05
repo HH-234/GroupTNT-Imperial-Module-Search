@@ -15,4 +15,11 @@
     <sql id="Base_Column_List">
         id,course_id,year_number,module_type,module_name
     </sql>
+
+    <select id="selectByCourseId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM public.course_modules
+        WHERE course_id = #{courseId}
+        ORDER BY year_number, module_type, module_name
+    </select>
 </mapper>

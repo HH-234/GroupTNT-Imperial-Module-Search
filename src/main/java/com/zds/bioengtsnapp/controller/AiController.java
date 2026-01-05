@@ -1,0 +1,26 @@
+package com.zds.bioengtsnapp.controller;
+
+import com.zds.bioengtsnapp.service.DeepSeekService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+import java.util.HashMap;
+
+@RestController
+public class AiController {
+
+    private final DeepSeekService deepSeekService;
+
+    public AiController(DeepSeekService deepSeekService) {
+        this.deepSeekService = deepSeekService;
+    }
+
+    @PostMapping("/ai/chat")
+    public Map<String, String> chat(@RequestBody Map<String, String> payload) {
+        String message = payload.get("message");
+        String response = deepSeekService.chat(message);
+        Map<String, String> result = new HashMap<>();
+        result.put("response", response);
+        return result;
+    }
+}

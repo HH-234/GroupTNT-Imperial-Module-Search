@@ -32,4 +32,11 @@
         created_at,updated_at
     </sql>
 
+    <select id="selectByCourseName" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM public.courses
+        WHERE course_name LIKE CONCAT('%', #{courseName}, '%')
+        ORDER BY created_at DESC
+    </select>
+
 </mapper>

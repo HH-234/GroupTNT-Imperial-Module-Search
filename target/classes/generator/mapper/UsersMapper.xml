@@ -75,7 +75,14 @@
         FROM public.users u
         LEFT JOIN public.phone_numbers pn ON u.id = pn.user_id
         LEFT JOIN public.addresses a ON u.id = a.user_id
-        WHERE u.full_name = #{fullName}
+        WHERE u.full_name LIKE CONCAT('%', #{fullName}, '%')
         ORDER BY u.id, pn.id, a.id
+    </select>
+
+    <select id="selectByFullName" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM public.users
+        WHERE full_name LIKE CONCAT('%', #{fullName}, '%')
+        ORDER BY created_at DESC
     </select>
 </mapper>

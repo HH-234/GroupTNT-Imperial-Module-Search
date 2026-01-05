@@ -1,22 +1,18 @@
 package com.zds.bioengtsnapp;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
- * 主应用类：前端代理模式，直接调用 breakeve.cn
- * 排除数据库自动配置
+ * 主应用类：继承 SpringBootServletInitializer 以支持外部 Tomcat 部署
  */
-@SpringBootApplication(exclude = {
-    DataSourceAutoConfiguration.class,
-    DataSourceTransactionManagerAutoConfiguration.class,
-    HibernateJpaAutoConfiguration.class
-})
+@SpringBootApplication
+@ComponentScan({"com.zds.bioengtsnapp", "generator"})
+@MapperScan({"com.zds.bioengtsnapp.mapper", "generator.mapper"})
 public class BioengTsnAppApplication extends SpringBootServletInitializer {
 
     @Override
