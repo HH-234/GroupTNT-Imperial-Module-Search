@@ -8,6 +8,7 @@ F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\dto\UserDetailDTO.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\domain\Addresses.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\service\impl\AddressesServiceImpl.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\mapper\UsersMapper.java
+F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\controller\ProxyController.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\dto\DeepSeekRequest.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\domain\Users.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\service\PhoneNumbersService.java
@@ -19,9 +20,8 @@ F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\dto\DeepSeekResponse.j
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\mapper\PhoneNumbersMapper.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\config\TransactionConfig.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\config\TsuruServiceConfig.java
-F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\controller\AiController.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\controller\HealthController.java
-F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\controller\CoursesController.java
+F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\config\ProxyConfig.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\service\impl\UsersServiceImpl.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\domain\Courses.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\domain\CourseModules.java
@@ -30,6 +30,5 @@ F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\mapper\CourseModulesMa
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\domain\PhoneNumbers.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\service\impl\PhoneNumbersServiceImpl.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\mapper\CoursesMapper.java
-F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\controller\UsersController.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\service\AddressesService.java
 F:\Code\bioeng-tsn-app\src\main\java\com\zds\bioengtsnapp\service\impl\CoursesServiceImpl.java

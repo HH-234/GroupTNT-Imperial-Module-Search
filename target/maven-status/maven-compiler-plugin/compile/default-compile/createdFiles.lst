@@ -5,12 +5,10 @@ com\zds\bioengtsnapp\mapper\CourseModulesMapper.class
 com\zds\bioengtsnapp\dto\UserDetailDTO.class
 com\zds\bioengtsnapp\mapper\PhoneNumbersMapper.class
 com\zds\bioengtsnapp\dto\DeepSeekResponse.class
-com\zds\bioengtsnapp\controller\CoursesController.class
 com\zds\bioengtsnapp\service\impl\UsersServiceImpl.class
 com\zds\bioengtsnapp\domain\Addresses.class
 com\zds\bioengtsnapp\dto\UserDetailDTO$PhoneNumberDTO.class
 com\zds\bioengtsnapp\dto\CourseDetailDTO$CourseModuleDTO.class
-com\zds\bioengtsnapp\controller\AiController.class
 com\zds\bioengtsnapp\controller\HomeController.class
 com\zds\bioengtsnapp\controller\HealthController.class
 com\zds\bioengtsnapp\domain\Users.class
@@ -25,7 +23,6 @@ com\zds\bioengtsnapp\service\CourseModulesService.class
 com\zds\bioengtsnapp\domain\Courses.class
 com\zds\bioengtsnapp\dto\DeepSeekRequest$DeepSeekRequestBuilder.class
 com\zds\bioengtsnapp\service\impl\CoursesServiceImpl.class
-com\zds\bioengtsnapp\controller\UsersController.class
 com\zds\bioengtsnapp\dto\CourseDetailDTO.class
 com\zds\bioengtsnapp\domain\PhoneNumbers.class
 com\zds\bioengtsnapp\dto\DeepSeekRequest$Message.class
