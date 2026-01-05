@@ -36,7 +36,7 @@ jobs:
 
       - name: Rename war file
         run: |
-          mv ./lib ./ROOT.war
+          mv ./lib/* ./ROOT.war
           ls -lah ROOT.war
 
       - name: Deploy to Tsuru
