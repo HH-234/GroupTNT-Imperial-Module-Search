@@ -2,10 +2,10 @@ package com.zds.bioengtsnapp.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -13,21 +13,11 @@ import org.springframework.context.annotation.Primary;
 import javax.sql.DataSource;
 
 /**
- * 解析 Tsuru 的 TSURU_SERVICES 环境变量来配置数据源
+ * 解析 Tsuru 的 TSURU_SERVICES 环境变量或直接环境变量来配置数据源
  * 
- * TSURU_SERVICES 格式示例：
- * {
- *   "postgres": [{
- *     "instance_name": "db_bioengtsnapp",
- *     "envs": {
- *       "PGDATABASE": "...",
- *       "PGHOST": "...",
- *       "PGPASSWORD": "...",
- *       "PGPORT": "...",
- *       "PGUSER": "..."
- *     }
- *   }]
- * }
+ * Tsuru 会自动注入以下环境变量：
+ * - PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD（直接环境变量）
+ * - 或 TSURU_SERVICES（JSON格式，包含所有服务信息）
  */
 @Configuration
 public class TsuruServiceConfig {
@@ -36,11 +26,15 @@ public class TsuruServiceConfig {
 
     @Bean
     @Primary
-    @ConfigurationProperties("spring.datasource")
-    public DataSourceProperties dataSourceProperties() {
-        DataSourceProperties properties = new DataSourceProperties();
+    public DataSource dataSource() {
+        String host = null;
+        String port = null;
+        String database = null;
+        String user = null;
+        String password = null;
+        String configSource = "Default values";
         
-        // 尝试从 TSURU_SERVICES 解析
+        // 优先尝试从 TSURU_SERVICES 解析
         String tsuruServices = System.getenv("TSURU_SERVICES");
         
         if (tsuruServices != null && !tsuruServices.isEmpty()) {
@@ -56,57 +50,72 @@ public class TsuruServiceConfig {
                     JsonNode envs = firstInstance.get("envs");
                     
                     if (envs != null) {
-                        String host = getEnvValue(envs, "PGHOST");
-                        String port = getEnvValue(envs, "PGPORT");
-                        String database = getEnvValue(envs, "PGDATABASE");
-                        String user = getEnvValue(envs, "PGUSER");
-                        String password = getEnvValue(envs, "PGPASSWORD");
-                        
-                        String url = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
-                        
-                        properties.setUrl(url);
-                        properties.setUsername(user);
-                        properties.setPassword(password);
-                        properties.setDriverClassName("org.postgresql.Driver");
+                        host = getJsonValue(envs, "PGHOST");
+                        port = getJsonValue(envs, "PGPORT");
+                        database = getJsonValue(envs, "PGDATABASE");
+                        user = getJsonValue(envs, "PGUSER");
+                        password = getJsonValue(envs, "PGPASSWORD");
+                        configSource = "TSURU_SERVICES";
                         
                         logger.info("从 TSURU_SERVICES 解析数据库配置成功: host={}, port={}, database={}, user={}",
                                 host, port, database, user);
-                        return properties;
                     }
+                } else {
+                    logger.warn("TSURU_SERVICES 中未找到 postgres 服务配置");
                 }
-                logger.warn("TSURU_SERVICES 中未找到 postgres 服务配置");
             } catch (Exception e) {
                 logger.error("解析 TSURU_SERVICES 失败: {}", e.getMessage());
             }
         }
         
-        // 回退：使用单独的环境变量或默认值
-        String host = getEnv("PGHOST", "localhost");
-        String port = getEnv("PGPORT", "5432");
-        String database = getEnv("PGDATABASE", "postgres");
-        String user = getEnv("PGUSER", "postgres");
-        String password = getEnv("PGPASSWORD", "123456");
+        // 如果 TSURU_SERVICES 没解析到，尝试直接读取环境变量
+        if (host == null || host.isEmpty()) {
+            String envHost = System.getenv("PGHOST");
+            if (envHost != null && !envHost.isEmpty()) {
+                host = envHost;
+                port = getEnv("PGPORT", "5432");
+                database = getEnv("PGDATABASE", "postgres");
+                user = getEnv("PGUSER", "postgres");
+                password = getEnv("PGPASSWORD", "");
+                configSource = "Individual ENV vars";
+                
+                logger.info("从环境变量读取数据库配置: host={}, port={}, database={}, user={}",
+                        host, port, database, user);
+            }
+        }
         
-        String url = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
+        // 最后回退到默认值（本地开发）
+        if (host == null || host.isEmpty()) {
+            host = "localhost";
+            port = "5432";
+            database = "postgres";
+            user = "postgres";
+            password = "123456";
+            configSource = "Default values (localhost)";
+            
+            logger.info("使用默认本地配置: host={}, port={}, database={}, user={}",
+                    host, port, database, user);
+        }
         
-        properties.setUrl(url);
-        properties.setUsername(user);
-        properties.setPassword(password);
-        properties.setDriverClassName("org.postgresql.Driver");
+        // 构建 JDBC URL
+        String jdbcUrl = String.format("jdbc:postgresql://%s:%s/%s", host, port, database);
+        logger.info("最终数据库连接 URL: {} (来源: {})", jdbcUrl, configSource);
         
-        logger.info("使用环境变量配置数据库: host={}, port={}, database={}, user={}", 
-                host, port, database, user);
+        // 创建 HikariCP 数据源
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(jdbcUrl);
+        config.setUsername(user);
+        config.setPassword(password);
+        config.setDriverClassName("org.postgresql.Driver");
+        config.setConnectionTimeout(30000);
+        config.setMaximumPoolSize(10);
+        config.setMinimumIdle(2);
+        config.setInitializationFailTimeout(-1); // 允许启动时数据库不可用
         
-        return properties;
+        return new HikariDataSource(config);
     }
     
-    @Bean
-    @Primary
-    public DataSource dataSource(DataSourceProperties properties) {
-        return properties.initializeDataSourceBuilder().build();
-    }
-    
-    private String getEnvValue(JsonNode envs, String key) {
+    private String getJsonValue(JsonNode envs, String key) {
         JsonNode node = envs.get(key);
         return node != null ? node.asText() : null;
     }
@@ -116,4 +125,3 @@ public class TsuruServiceConfig {
         return value != null && !value.isEmpty() ? value : defaultValue;
     }
 }
-
