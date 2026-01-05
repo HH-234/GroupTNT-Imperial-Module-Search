@@ -11,7 +11,7 @@ Bioeng TSN App 是一个基于 Spring Boot 开发的 Web 应用程序，旨在�
   - 直接链接到 Imperial Profiles 官方页面。
 
 - **课程搜索 (Course Search)**:
-  - 浏览课程信息及其包含的模块 (Modules)。
+  - 浏览课程信息及其包含的模块 (Modules).
 
 - **AI 智能助手 (AI Chat Assistant)**:
   - 集成 DeepSeek AI 模型。
@@ -31,11 +31,28 @@ Bioeng TSN App 是一个基于 Spring Boot 开发的 Web 应用程序，旨在�
 
 - JDK 17 或更高版本
 - Maven 3.6+
-- PostgreSQL 13+
+- PostgreSQL 13+ (或使用 Docker)
 
 ## ⚙️ 配置与启动 (Setup & Run)
 
-### 1. 数据库准备 (Database Setup)
+### 1. 使用 Docker 运行数据库 (Recommended)
+
+1. 确保 Docker 和 Docker Compose 已安装并运行。
+2. 在项目根目录下启动 PostgreSQL 数据库：
+
+```bash
+docker-compose up -d
+```
+
+3. 等待数据库容器启动并初始化：
+
+```bash
+docker-compose logs postgres
+```
+
+### 2. 数据库准备 (Database Setup)
+
+如果使用 Docker Compose，数据库和表结构会自动创建。如需手动创建：
 
 1. 创建 PostgreSQL 数据库 `imperial_profiles`。
 2. 执行 `sql/schema.sql` 脚本以创建表结构。
@@ -45,7 +62,7 @@ Bioeng TSN App 是一个基于 Spring Boot 开发的 Web 应用程序，旨在�
 psql -U postgres -d imperial_profiles -f sql/schema.sql
 ```
 
-### 2. 修改配置 (Configuration)
+### 3. 修改配置 (Configuration)
 
 打开 `src/main/resources/application.yml` 文件，根据本地环境修改以下配置：
 
@@ -53,10 +70,10 @@ psql -U postgres -d imperial_profiles -f sql/schema.sql
 spring:
   datasource:
     # 修改数据库连接地址、端口和数据库名
-    url: jdbc:postgresql://localhost:5433/imperial_profiles?currentSchema=public
+    url: jdbc:postgresql://localhost:5432/imperial_profiles?currentSchema=public
     # 修改数据库用户名和密码
     username: postgres
-    password: your_password
+    password: 123456
 
 server:
   # 应用启动端口
@@ -68,7 +85,7 @@ deepseek:
     key: your_api_key_here
 ```
 
-### 3. 启动应用 (Start Application)
+### 4. 启动应用 (Start Application)
 
 在项目根目录下运行以下命令启动应用：
 
@@ -80,7 +97,22 @@ deepseek:
 ./mvnw spring-boot:run
 ```
 
-### 4. 访问应用 (Access)
+### 5. 使用内存数据库启动 (For Development)
+
+如果不想安装 PostgreSQL，可以使用 H2 内存数据库进行开发：
+
+```bash
+# Windows - 使用开发配置文件
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Linux/macOS - 使用开发配置文件
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+当使用开发配置时，应用程序会自动使用 H2 内存数据库，并可通过以下 URL 访问 H2 控制台：
+[http://localhost:8081/h2-console](http://localhost:8081/h2-console)
+
+### 6. 访问应用 (Access)
 
 应用启动成功后，打开浏览器访问：
 

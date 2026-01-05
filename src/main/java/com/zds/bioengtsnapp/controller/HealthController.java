@@ -1,32 +1,145 @@
 package com.zds.bioengtsnapp.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
 import java.time.Instant;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
- * 健康检查接口：用于验证应用是否正常启动
+ * 健康检查接口：用于验证应用是否正常启动、数据库是否连接正常、列出所有API
  */
 @RestController
 public class HealthController {
 
-    @GetMapping({"health", "/healthz"})
+    @Autowired
+    private DataSource dataSource;
+
+    @Autowired
+    private RequestMappingHandlerMapping requestMappingHandlerMapping;
+
+    /**
+     * 完整心跳检查接口
+     * 返回：应用状态、数据库连接状态、所有API路径
+     */
+    @GetMapping({"/health", "/healthz", "/heartbeat"})
     public Map<String, Object> health() {
         Map<String, Object> resp = new LinkedHashMap<>();
-        resp.put("status", "ok");
-        resp.put("time", Instant.now().toString());
+
+        // 1. 应用状态
+        resp.put("status", "running");
         resp.put("app", "bioeng-tsn-app");
+        resp.put("time", Instant.now().toString());
+        resp.put("javaVersion", System.getProperty("java.version"));
+        resp.put("osName", System.getProperty("os.name"));
+
+        // 2. 数据库连接检查
+        Map<String, Object> dbStatus = checkDatabaseConnection();
+        resp.put("database", dbStatus);
+
+        // 3. 所有API路径
+        List<Map<String, String>> apiList = getAllApiEndpoints();
+        resp.put("apiCount", apiList.size());
+        resp.put("apis", apiList);
+
+        // 4. 环境变量（仅显示是否存在，不暴露值）
         resp.put("env", Map.of(
                 "PGHOST", System.getenv("PGHOST") != null,
                 "PGPORT", System.getenv("PGPORT") != null,
                 "PGDATABASE", System.getenv("PGDATABASE") != null,
                 "PGUSER", System.getenv("PGUSER") != null,
-                "PGPASSWORD", System.getenv("PGPASSWORD") != null
+                "PGPASSWORD", System.getenv("PGPASSWORD") != null,
+                "PORT", System.getenv("PORT") != null
         ));
+
         return resp;
     }
-}
 
+    /**
+     * 简单存活检查（用于负载均衡器）
+     */
+    @GetMapping("/ping")
+    public Map<String, String> ping() {
+        return Map.of("pong", Instant.now().toString());
+    }
+
+    /**
+     * 检查数据库连接
+     */
+    private Map<String, Object> checkDatabaseConnection() {
+        Map<String, Object> dbStatus = new LinkedHashMap<>();
+        try (Connection conn = dataSource.getConnection()) {
+            dbStatus.put("connected", true);
+            dbStatus.put("message", "Database connection successful");
+            dbStatus.put("databaseProductName", conn.getMetaData().getDatabaseProductName());
+            dbStatus.put("databaseProductVersion", conn.getMetaData().getDatabaseProductVersion());
+            dbStatus.put("url", conn.getMetaData().getURL());
+        } catch (Exception e) {
+            dbStatus.put("connected", false);
+            dbStatus.put("message", "Database connection failed");
+            dbStatus.put("error", e.getMessage());
+        }
+        return dbStatus;
+    }
+
+    /**
+     * 获取所有已注册的API端点
+     */
+    private List<Map<String, String>> getAllApiEndpoints() {
+        List<Map<String, String>> apiList = new ArrayList<>();
+
+        Map<RequestMappingInfo, HandlerMethod> handlerMethods = requestMappingHandlerMapping.getHandlerMethods();
+
+        for (Map.Entry<RequestMappingInfo, HandlerMethod> entry : handlerMethods.entrySet()) {
+            RequestMappingInfo mappingInfo = entry.getKey();
+            HandlerMethod handlerMethod = entry.getValue();
+
+            // 获取路径 - 兼容 Spring Boot 2.7+
+            Set<String> patterns = new HashSet<>();
+            
+            // 尝试使用 PathPatternsCondition (Spring 5.3+)
+            if (mappingInfo.getPathPatternsCondition() != null) {
+                mappingInfo.getPathPatternsCondition().getPatterns().forEach(p -> patterns.add(p.getPatternString()));
+            }
+            // 回退到 PatternsCondition
+            else if (mappingInfo.getPatternsCondition() != null) {
+                patterns.addAll(mappingInfo.getPatternsCondition().getPatterns());
+            }
+
+            // 如果仍然为空，跳过
+            if (patterns.isEmpty()) {
+                continue;
+            }
+
+            // 获取HTTP方法
+            Set<org.springframework.web.bind.annotation.RequestMethod> methods =
+                    mappingInfo.getMethodsCondition().getMethods();
+            String httpMethods = methods.isEmpty() ? "ALL" :
+                    methods.stream().map(Enum::name).reduce((a, b) -> a + ", " + b).orElse("");
+
+            // 获取控制器和方法名
+            String controller = handlerMethod.getBeanType().getSimpleName();
+            String methodName = handlerMethod.getMethod().getName();
+
+            for (String pattern : patterns) {
+                Map<String, String> api = new LinkedHashMap<>();
+                api.put("path", pattern);
+                api.put("method", httpMethods);
+                api.put("controller", controller);
+                api.put("handler", methodName);
+                apiList.add(api);
+            }
+        }
+
+        // 按路径排序
+        apiList.sort(Comparator.comparing(a -> a.get("path")));
+
+        return apiList;
+    }
+}

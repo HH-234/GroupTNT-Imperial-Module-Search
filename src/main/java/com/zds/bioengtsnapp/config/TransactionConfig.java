@@ -9,6 +9,5 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableTransactionManagement
 public class TransactionConfig {
-    // Spring Boot 会自动配置事务管理器，这里只需要启用注解驱动的事务管理
 }
 

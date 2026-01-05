@@ -651,6 +651,207 @@
             align-items: center;
             justify-content: center;
         }
+
+        /* Heartbeat Button & Modal */
+        .heartbeat-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 999;
+            border: none;
+        }
+
+        .heartbeat-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .heartbeat-btn.pulse {
+            animation: pulse-animation 0.6s ease-in-out;
+        }
+
+        @keyframes pulse-animation {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .heartbeat-modal {
+            position: fixed;
+            bottom: 160px;
+            right: 30px;
+            width: 450px;
+            max-height: 70vh;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            z-index: 998;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .heartbeat-modal.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+
+        .hb-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .hb-header i.close {
+            cursor: pointer;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+
+        .hb-header i.close:hover {
+            opacity: 1;
+        }
+
+        .hb-body {
+            padding: 20px;
+            max-height: calc(70vh - 60px);
+            overflow-y: auto;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .hb-section {
+            margin-bottom: 20px;
+        }
+
+        .hb-section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hb-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .hb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+
+        .hb-row:last-child {
+            border-bottom: none;
+        }
+
+        .hb-label {
+            color: #64748b;
+        }
+
+        .hb-value {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .hb-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .hb-status.success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .hb-status.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .hb-api-list {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+
+        .hb-api-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+
+        .hb-api-method {
+            min-width: 50px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .hb-api-method.GET { background: #dbeafe; color: #2563eb; }
+        .hb-api-method.POST { background: #dcfce7; color: #16a34a; }
+        .hb-api-method.PUT { background: #fef3c7; color: #d97706; }
+        .hb-api-method.DELETE { background: #fee2e2; color: #dc2626; }
+        .hb-api-method.ALL { background: #e5e7eb; color: #374151; }
+
+        .hb-api-path {
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: var(--text-main);
+        }
+
+        .hb-loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .hb-loading i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -741,6 +942,24 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- Heartbeat Check Button & Modal -->
+    <button class="heartbeat-btn" id="heartbeatBtn" onclick="toggleHeartbeat()" title="系统心跳检查">
+        <i class="fas fa-heartbeat"></i>
+    </button>
+
+    <div class="heartbeat-modal" id="heartbeatModal">
+        <div class="hb-header">
+            <span><i class="fas fa-heartbeat"></i> 系统心跳检查</span>
+            <i class="fas fa-times close" onclick="toggleHeartbeat()"></i>
+        </div>
+        <div class="hb-body" id="heartbeatBody">
+            <div class="hb-loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                正在检查...
+            </div>
+        </div>
     </div>
 
     <!-- AI Chat Components -->
@@ -1013,6 +1232,145 @@
         // Start
         init();
         initDraggable();
+
+        // ================= HEARTBEAT FUNCTIONS =================
+        let heartbeatOpen = false;
+
+        function toggleHeartbeat() {
+            const modal = document.getElementById('heartbeatModal');
+            const btn = document.getElementById('heartbeatBtn');
+            heartbeatOpen = !heartbeatOpen;
+
+            if (heartbeatOpen) {
+                modal.classList.add('open');
+                btn.classList.add('pulse');
+                setTimeout(() => btn.classList.remove('pulse'), 600);
+                fetchHeartbeat();
+            } else {
+                modal.classList.remove('open');
+            }
+        }
+
+        async function fetchHeartbeat() {
+            const body = document.getElementById('heartbeatBody');
+            body.innerHTML = `
+                <div class="hb-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    正在检查后端服务...
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/heartbeat');
+                const data = await response.json();
+                renderHeartbeatData(data);
+            } catch (error) {
+                console.error('Heartbeat error:', error);
+                body.innerHTML = `
+                    <div class="hb-section">
+                        <div class="hb-card" style="text-align:center;">
+                            <i class="fas fa-exclamation-triangle" style="font-size:2rem; color:#dc2626; margin-bottom:10px;"></i>
+                            <div style="color:#dc2626; font-weight:600;">无法连接到后端服务</div>
+                            <div style="color:#64748b; font-size:0.85rem; margin-top:8px;">${error.message}</div>
+                            <button onclick="fetchHeartbeat()" style="margin-top:15px; padding:8px 20px; background:var(--primary-color); color:white; border:none; border-radius:6px; cursor:pointer;">
+                                <i class="fas fa-redo"></i> 重试
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderHeartbeatData(data) {
+            const body = document.getElementById('heartbeatBody');
+            
+            // 应用状态
+            const appStatusHtml = `
+                <div class="hb-section">
+                    <div class="hb-section-title"><i class="fas fa-server"></i> 应用状态</div>
+                    <div class="hb-card">
+                        <div class="hb-row">
+                            <span class="hb-label">状态</span>
+                            <span class="hb-status success"><i class="fas fa-check-circle"></i> ${data.status}</span>
+                        </div>
+                        <div class="hb-row">
+                            <span class="hb-label">应用名</span>
+                            <span class="hb-value">${data.app}</span>
+                        </div>
+                        <div class="hb-row">
+                            <span class="hb-label">时间</span>
+                            <span class="hb-value">${new Date(data.time).toLocaleString('zh-CN')}</span>
+                        </div>
+                        <div class="hb-row">
+                            <span class="hb-label">Java 版本</span>
+                            <span class="hb-value">${data.javaVersion || 'N/A'}</span>
+                        </div>
+                        <div class="hb-row">
+                            <span class="hb-label">操作系统</span>
+                            <span class="hb-value">${data.osName || 'N/A'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 数据库状态
+            const db = data.database || {};
+            const dbStatusClass = db.connected ? 'success' : 'error';
+            const dbStatusIcon = db.connected ? 'fa-check-circle' : 'fa-times-circle';
+            const dbStatusText = db.connected ? '已连接' : '连接失败';
+            
+            const dbStatusHtml = `
+                <div class="hb-section">
+                    <div class="hb-section-title"><i class="fas fa-database"></i> 数据库状态</div>
+                    <div class="hb-card">
+                        <div class="hb-row">
+                            <span class="hb-label">连接状态</span>
+                            <span class="hb-status ${dbStatusClass}"><i class="fas ${dbStatusIcon}"></i> ${dbStatusText}</span>
+                        </div>
+                        ${db.databaseProductName ? `
+                        <div class="hb-row">
+                            <span class="hb-label">数据库类型</span>
+                            <span class="hb-value">${db.databaseProductName}</span>
+                        </div>
+                        ` : ''}
+                        ${db.databaseProductVersion ? `
+                        <div class="hb-row">
+                            <span class="hb-label">版本</span>
+                            <span class="hb-value">${db.databaseProductVersion}</span>
+                        </div>
+                        ` : ''}
+                        ${db.error ? `
+                        <div class="hb-row">
+                            <span class="hb-label">错误信息</span>
+                            <span class="hb-value" style="color:#dc2626; font-size:0.85rem;">${db.error}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            // API 列表
+            const apis = data.apis || [];
+            let apisHtml = `
+                <div class="hb-section">
+                    <div class="hb-section-title"><i class="fas fa-plug"></i> API 端点 (${data.apiCount || apis.length})</div>
+                    <div class="hb-api-list">
+            `;
+            
+            apis.forEach(api => {
+                const method = api.method || 'ALL';
+                apisHtml += `
+                    <div class="hb-api-item">
+                        <span class="hb-api-method ${method.split(',')[0].trim()}">${method}</span>
+                        <span class="hb-api-path">${api.path}</span>
+                    </div>
+                `;
+            });
+            
+            apisHtml += `</div></div>`;
+
+            body.innerHTML = appStatusHtml + dbStatusHtml + apisHtml;
+        }
 
         // ================= AI CHAT FUNCTIONS =================
         function initDraggable() {

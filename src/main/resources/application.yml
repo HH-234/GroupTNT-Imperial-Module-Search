@@ -12,24 +12,14 @@ spring:
   # Tsuru 环境变量：PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
   # 本地开发时使用默认值
   datasource:
-    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:imperial_profiles}
+    url: jdbc:postgresql://127.0.0.1:5432/imperial_profiles
+    username: postgres
     driver-class-name: org.postgresql.Driver
-    username: ${PGUSER:postgres}
-    password: ${PGPASSWORD:123456}
-    hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
-      # 允许启动时数据库暂时不可用（延迟连接验证）
-      initialization-fail-timeout: -1
+    password: 123456
 
   # Transaction Management
   transaction:
     default-timeout: 30
-
-  # 禁用自动执行 SQL 初始化脚本（防止启动时因脚本失败而崩溃）
-  sql:
-    init:
-      mode: never
 
 # MyBatis Plus
 mybatis-plus:
@@ -40,5 +30,8 @@ mybatis-plus:
 
 deepseek:
   api:
-    key: ${DEEPSEEK_API_KEY:your_api_key_here}
+    key: sk-b81e9c8cf9624929af4b668125a9955f
   base-url: https://api.deepseek.com
+
+
+
