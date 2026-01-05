@@ -13,13 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build (Maven, skip tests)
-        run: |
-          chmod +x mvnw
-          ./mvnw -B package -DskipTests
-          echo "=== Build output ==="
-          ls -lah target/
-
       - name: Install Tsuru CLI
         run: |
           curl -fsSL https://raw.githubusercontent.com/tsuru/tsuru-client/master/install.sh | sh

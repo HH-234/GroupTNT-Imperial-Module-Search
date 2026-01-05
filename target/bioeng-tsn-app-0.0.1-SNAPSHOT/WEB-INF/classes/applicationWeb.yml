@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: bioeng-tsn-app
+
+  main:
+    # 同时依赖 web + webflux（为了 WebClient / Mono）时，强制以 Servlet(Tomcat) 模式启动
+    web-application-type: servlet
+    # 允许 Bean 定义覆盖（防止 WebFlux 自动配置冲突）
+    allow-bean-definition-overriding: true
+
+  # Database Configuration (PostgreSQL)
+  # Tsuru 环境变量：PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
+  # 本地开发时使用默认值
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/imperial_profiles
+    username: postgres
+    driver-class-name: org.postgresql.Driver
+    password: 123456
+
+  # Transaction Management
+  transaction:
+    default-timeout: 30
+
+  # 禁用自动执行 SQL 初始化脚本（防止启动时因脚本失败而崩溃）
+  sql:
+    init:
+      mode: never
+
+# MyBatis Plus
+mybatis-plus:
+  mapper-locations: classpath*:generator/mapper/*.xml,classpath*:com/zds/bioengtsnapp/mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+
+deepseek:
+  api:
+    key: sk-b81e9c8cf9624929af4b668125a9955f
+  base-url: https://api.deepseek.com
+
+
+

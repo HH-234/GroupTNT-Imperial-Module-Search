@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zds.bioengtsnapp.mapper.UsersMapper">
+
+    <resultMap id="BaseResultMap" type="com.zds.bioengtsnapp.domain.Users">
+            <result property="id" column="id" />
+            <result property="discoveryUrlId" column="discovery_url_id" />
+            <result property="avatarUrl" column="avatar_url" />
+            <result property="firstName" column="first_name" />
+            <result property="lastName" column="last_name" />
+            <result property="fullName" column="full_name" />
+            <result property="emailAddress" column="email_address" />
+            <result property="createdAt" column="created_at" />
+            <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <resultMap id="UserDetailResultMap" type="com.zds.bioengtsnapp.dto.UserDetailDTO">
+        <id property="id" column="user_id" />
+        <result property="discoveryUrlId" column="discovery_url_id" />
+        <result property="avatarUrl" column="avatar_url" />
+        <result property="firstName" column="first_name" />
+        <result property="lastName" column="last_name" />
+        <result property="fullName" column="full_name" />
+        <result property="emailAddress" column="email_address" />
+        <result property="createdAt" column="user_created_at" />
+        <result property="updatedAt" column="user_updated_at" />
+        <collection property="phoneNumbers" ofType="com.zds.bioengtsnapp.dto.UserDetailDTO$PhoneNumberDTO">
+            <id property="id" column="phone_id" />
+            <result property="typeDisplayName" column="phone_type_display_name" />
+            <result property="number" column="phone_number" />
+        </collection>
+        <collection property="addresses" ofType="com.zds.bioengtsnapp.dto.UserDetailDTO$AddressDTO">
+            <id property="id" column="address_id" />
+            <result property="countryCode" column="address_country_code" />
+            <result property="singleLineFormat" column="address_single_line_format" />
+            <result property="streetAddress" column="address_street_address" />
+            <result property="city" column="address_city" />
+            <result property="state" column="address_state" />
+            <result property="country" column="address_country" />
+        </collection>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,discovery_url_id,avatar_url,first_name,last_name,full_name,
+        email_address,created_at,updated_at
+    </sql>
+
+    <!-- 根据全名查询用户详细信息（包含手机和地址） -->
+    <select id="getUserDetailsByFullName" resultMap="UserDetailResultMap">
+        SELECT
+            u.id AS user_id,
+            CASE 
+                WHEN u.discovery_url_id LIKE 'https://%' THEN u.discovery_url_id
+                ELSE CONCAT('https://profiles.imperial.ac.uk/', u.discovery_url_id)
+            END AS discovery_url_id,
+            u.avatar_url,
+            u.first_name,
+            u.last_name,
+            u.full_name,
+            u.email_address,
+            u.created_at AS user_created_at,
+            u.updated_at AS user_updated_at,
+            pn.id AS phone_id,
+            pn.type_display_name AS phone_type_display_name,
+            pn.number AS phone_number,
+            a.id AS address_id,
+            a.country_code AS address_country_code,
+            a.single_line_format AS address_single_line_format,
+            a.street_address AS address_street_address,
+            a.city AS address_city,
+            a.state AS address_state,
+            a.country AS address_country
+        FROM public.users u
+        LEFT JOIN public.phone_numbers pn ON u.id = pn.user_id
+        LEFT JOIN public.addresses a ON u.id = a.user_id
+        WHERE u.full_name = #{fullName}
+        ORDER BY u.id, pn.id, a.id
+    </select>
+</mapper>

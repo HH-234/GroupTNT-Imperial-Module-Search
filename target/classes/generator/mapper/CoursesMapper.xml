@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zds.bioengtsnapp.mapper.CoursesMapper">
+
+    <resultMap id="BaseResultMap" type="com.zds.bioengtsnapp.domain.Courses">
+            <result property="id" column="id" />
+            <result property="courseName" column="course_name" />
+            <result property="courseUrl" column="course_url" />
+            <result property="qualification" column="qualification" />
+            <result property="duration" column="duration" />
+            <result property="startDate" column="start_date" />
+            <result property="ucasCode" column="ucas_code" />
+            <result property="studyMode" column="study_mode" />
+            <result property="feeHome" column="fee_home" />
+            <result property="feeOverseas" column="fee_overseas" />
+            <result property="deliveredBy" column="delivered_by" />
+            <result property="location" column="location" />
+            <result property="applicationsPlaces" column="applications_places" />
+            <result property="entryRequirementAlevel" column="entry_requirement_alevel" />
+            <result property="entryRequirementIb" column="entry_requirement_ib" />
+            <result property="description" column="description" />
+            <result property="createdAt" column="created_at" />
+            <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,course_name,course_url,qualification,duration,start_date,
+        ucas_code,study_mode,fee_home,fee_overseas,delivered_by,
+        location,applications_places,entry_requirement_alevel,entry_requirement_ib,description,
+        created_at,updated_at
+    </sql>
+
+</mapper>

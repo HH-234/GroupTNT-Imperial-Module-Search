@@ -33,3 +33,6 @@ HELP.md
 .tmp_docx/
 *.docx
 
+# 允许 lib 目录中的 WAR 文件
+!lib/*.war
+
