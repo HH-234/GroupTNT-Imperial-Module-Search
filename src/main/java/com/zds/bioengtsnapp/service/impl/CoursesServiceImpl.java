@@ -31,7 +31,7 @@ public class CoursesServiceImpl extends ServiceImpl<CoursesMapper, Courses>
     public List<CourseDetailDTO> getCourseDetailsByCourseName(String courseName) {
         // 第一步：通过 course_name 查询 courses 表，获取所有字段
         List<Courses> courses = lambdaQuery()
-            .eq(Courses::getCourseName, courseName)
+            .like(Courses::getCourseName, "%" + courseName.toLowerCase() + "%")
             .list();
         
         if (courses.isEmpty()) {

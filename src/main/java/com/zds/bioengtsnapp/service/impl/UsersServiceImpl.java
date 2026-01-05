@@ -34,7 +34,7 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users>
     @Override
     @Transactional(readOnly = true)
     public List<Users> getUsersByFullName(String fullName) {
-        return lambdaQuery().eq(Users::getFullName, fullName).list();
+        return lambdaQuery().like(Users::getFullName, "%" + fullName.toLowerCase() + "%").list();
     }
 
     @Override
