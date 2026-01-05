@@ -3,6 +3,7 @@ package com.zds.bioengtsnapp.service;
 import com.zds.bioengtsnapp.domain.Users;
 import com.zds.bioengtsnapp.dto.UserDetailDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 
 import java.util.List;
 
@@ -26,4 +27,13 @@ public interface UsersService extends IService<Users> {
      * @return 用户详细信息列表
      */
     List<UserDetailDTO> getUserDetailsByFullName(String fullName);
+
+    /**
+     * 分页查询用户详细信息
+     * @param page 当前页
+     * @param size 每页大小
+     * @param fullName 用户全名
+     * @return 分页结果
+     */
+    IPage<UserDetailDTO> getUserDetailsByFullNamePage(int page, int size, String fullName);
 }

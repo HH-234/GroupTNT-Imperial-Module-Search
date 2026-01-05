@@ -1,6 +1,8 @@
 package com.zds.bioengtsnapp.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zds.bioengtsnapp.domain.Courses;
 import com.zds.bioengtsnapp.domain.CourseModules;
@@ -30,21 +32,57 @@ public class CoursesServiceImpl extends ServiceImpl<CoursesMapper, Courses>
     @Transactional(readOnly = true)
     public List<CourseDetailDTO> getCourseDetailsByCourseName(String courseName) {
         // 第一步：通过 course_name 查询 courses 表，获取所有字段
+        // PostgreSQL 默认区分大小写，使用 LOWER() 函数确保忽略大小写匹配
         List<Courses> courses = lambdaQuery()
-            .like(Courses::getCourseName, "%" + courseName.toLowerCase() + "%")
+            .apply(courseName != null && !courseName.isEmpty(), "LOWER(course_name) LIKE {0}", "%" + courseName.toLowerCase() + "%")
             .list();
         
+        return fillModulesAndConvert(courses);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<CourseDetailDTO> getCourseDetailsByCourseNamePage(int page, int size, String courseName) {
+        // 1. 分页查询 Courses
+        Page<Courses> coursesPage = new Page<>(page, size);
+        
+        // PostgreSQL 默认区分大小写，使用 LOWER() 函数确保忽略大小写匹配
+        IPage<Courses> resultPage = lambdaQuery()
+                .apply(courseName != null && !courseName.isEmpty(), "LOWER(course_name) LIKE {0}", "%" + courseName.toLowerCase() + "%")
+                .page(coursesPage);
+
+        List<Courses> courses = resultPage.getRecords();
+        if (courses.isEmpty()) {
+            // 如果没有记录，直接返回空的DTO分页对象
+            Page<CourseDetailDTO> emptyPage = new Page<>(page, size);
+            emptyPage.setTotal(resultPage.getTotal());
+            return emptyPage;
+        }
+
+        // 2. 填充模块信息并转换
+        List<CourseDetailDTO> dtoList = fillModulesAndConvert(courses);
+
+        // 3. 构造返回的分页对象
+        Page<CourseDetailDTO> dtoPage = new Page<>(page, size);
+        dtoPage.setRecords(dtoList);
+        dtoPage.setTotal(resultPage.getTotal());
+        dtoPage.setPages(resultPage.getPages());
+        
+        return dtoPage;
+    }
+
+    private List<CourseDetailDTO> fillModulesAndConvert(List<Courses> courses) {
         if (courses.isEmpty()) {
             return new ArrayList<>();
         }
-        
+
         // 收集所有课程ID
         List<Integer> courseIds = new ArrayList<>();
         for (Courses course : courses) {
             courseIds.add(course.getId());
         }
-        
-        // 第二步：根据 courses.id 去 course_modules 表查询所有 course_id 对应的记录，获取所有字段
+
+        // 第二步：根据 courses.id 去 course_modules 表查询所有 course_id 对应的记录
         Map<Integer, List<CourseDetailDTO.CourseModuleDTO>> moduleMap = new HashMap<>();
         if (!courseIds.isEmpty()) {
             List<CourseModules> modules = courseModulesMapper.selectList(
@@ -55,15 +93,14 @@ public class CoursesServiceImpl extends ServiceImpl<CoursesMapper, Courses>
                     .add(convertToModuleDTO(module));
             }
         }
-        
-        // 组装结果：courses 表的所有字段 + course_modules 表的所有字段
+
+        // 组装结果
         List<CourseDetailDTO> result = new ArrayList<>();
         for (Courses course : courses) {
             CourseDetailDTO dto = convertToCourseDetailDTO(course);
             dto.setCourseModules(moduleMap.getOrDefault(course.getId(), new ArrayList<>()));
             result.add(dto);
         }
-        
         return result;
     }
     

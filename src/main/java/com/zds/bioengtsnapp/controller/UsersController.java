@@ -3,6 +3,7 @@ package com.zds.bioengtsnapp.controller;
 import com.zds.bioengtsnapp.domain.Users;
 import com.zds.bioengtsnapp.dto.UserDetailDTO;
 import com.zds.bioengtsnapp.service.UsersService;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,10 +30,13 @@ public class UsersController {
 
     /**
      * 根据全名搜索用户详细信息（包含 phoneNumbers / addresses / discoveryUrlId 等）
-     * URL: /users/search/details?fullName=xxx
+     * URL: /users/search/details?fullName=xxx&page=1&size=10
      */
     @GetMapping("/users/search/details")
-    public List<UserDetailDTO> searchDetailsByFullName(@RequestParam String fullName) {
-        return usersService.getUserDetailsByFullName(fullName);
+    public IPage<UserDetailDTO> searchDetailsByFullName(
+            @RequestParam(required = false, defaultValue = "") String fullName,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return usersService.getUserDetailsByFullNamePage(page, size, fullName);
     }
 }

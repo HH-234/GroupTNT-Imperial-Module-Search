@@ -14,7 +14,7 @@ spring:
 
   datasource:
     url: jdbc:postgresql://127.0.0.1:5432/imperial_profiles
-    username: postgres2
+    username: postgres
     driver-class-name: org.postgresql.Driver
     password: 123456
 

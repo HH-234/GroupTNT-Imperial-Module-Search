@@ -2,6 +2,8 @@ package com.zds.bioengtsnapp.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zds.bioengtsnapp.domain.Users;
 import com.zds.bioengtsnapp.domain.PhoneNumbers;
 import com.zds.bioengtsnapp.domain.Addresses;
@@ -34,7 +36,10 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users>
     @Override
     @Transactional(readOnly = true)
     public List<Users> getUsersByFullName(String fullName) {
-        return lambdaQuery().like(Users::getFullName, "%" + fullName.toLowerCase() + "%").list();
+        // PostgreSQL 默认区分大小写，使用 LOWER() 函数确保忽略大小写匹配
+        return lambdaQuery()
+            .apply(fullName != null && !fullName.isEmpty(), "LOWER(full_name) LIKE {0}", "%" + fullName.toLowerCase() + "%")
+            .list();
     }
 
     @Override
@@ -42,17 +47,50 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users>
     public List<UserDetailDTO> getUserDetailsByFullName(String fullName) {
         // 先查询用户基本信息
         List<Users> users = getUsersByFullName(fullName);
+        return fillDetailsAndConvert(users);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<UserDetailDTO> getUserDetailsByFullNamePage(int page, int size, String fullName) {
+        // 1. 分页查询 Users
+        Page<Users> usersPage = new Page<>(page, size);
         
+        // PostgreSQL 默认区分大小写，使用 LOWER() 函数确保忽略大小写匹配
+        IPage<Users> resultPage = lambdaQuery()
+                .apply(fullName != null && !fullName.isEmpty(), "LOWER(full_name) LIKE {0}", "%" + fullName.toLowerCase() + "%")
+                .page(usersPage);
+
+        List<Users> users = resultPage.getRecords();
+        if (users.isEmpty()) {
+            Page<UserDetailDTO> emptyPage = new Page<>(page, size);
+            emptyPage.setTotal(resultPage.getTotal());
+            return emptyPage;
+        }
+
+        // 2. 填充详细信息并转换
+        List<UserDetailDTO> dtoList = fillDetailsAndConvert(users);
+
+        // 3. 构造返回分页对象
+        Page<UserDetailDTO> dtoPage = new Page<>(page, size);
+        dtoPage.setRecords(dtoList);
+        dtoPage.setTotal(resultPage.getTotal());
+        dtoPage.setPages(resultPage.getPages());
+
+        return dtoPage;
+    }
+
+    private List<UserDetailDTO> fillDetailsAndConvert(List<Users> users) {
         if (users.isEmpty()) {
             return new ArrayList<>();
         }
-        
+
         // 收集所有用户ID
         List<Integer> userIds = new ArrayList<>();
         for (Users user : users) {
             userIds.add(user.getId());
         }
-        
+
         // 批量查询手机号码
         Map<Integer, List<UserDetailDTO.PhoneNumberDTO>> phoneMap = new HashMap<>();
         if (!userIds.isEmpty()) {
@@ -64,7 +102,7 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users>
                     .add(convertToPhoneDTO(phone));
             }
         }
-        
+
         // 批量查询地址
         Map<Integer, List<UserDetailDTO.AddressDTO>> addressMap = new HashMap<>();
         if (!userIds.isEmpty()) {
@@ -76,7 +114,7 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users>
                     .add(convertToAddressDTO(address));
             }
         }
-        
+
         // 组装结果
         List<UserDetailDTO> result = new ArrayList<>();
         for (Users user : users) {
@@ -85,7 +123,6 @@ public class UsersServiceImpl extends ServiceImpl<UsersMapper, Users>
             dto.setAddresses(addressMap.getOrDefault(user.getId(), new ArrayList<>()));
             result.add(dto);
         }
-        
         return result;
     }
     
