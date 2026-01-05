@@ -1,5 +1,7 @@
 package com.zds.bioengtsnapp.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,6 +11,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 
@@ -17,6 +20,8 @@ import java.util.*;
  */
 @RestController
 public class HealthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(HealthController.class);
 
     @Autowired
     private DataSource dataSource;
@@ -30,6 +35,9 @@ public class HealthController {
      */
     @GetMapping({"/health", "/healthz", "/heartbeat"})
     public Map<String, Object> health() {
+        long startTime = System.currentTimeMillis();
+        logger.info("Received heartbeat request");
+        
         Map<String, Object> resp = new LinkedHashMap<>();
 
         // 1. 应用状态
@@ -40,11 +48,18 @@ public class HealthController {
         resp.put("osName", System.getProperty("os.name"));
 
         // 2. 数据库连接检查
+        long dbCheckStart = System.currentTimeMillis();
         Map<String, Object> dbStatus = checkDatabaseConnection();
+        long dbCheckDuration = System.currentTimeMillis() - dbCheckStart;
+        logger.info("Database check completed in {} ms, status: {}", dbCheckDuration, dbStatus.get("connected"));
         resp.put("database", dbStatus);
 
         // 3. 所有API路径
+        long apiCheckStart = System.currentTimeMillis();
         List<Map<String, String>> apiList = getAllApiEndpoints();
+        long apiCheckDuration = System.currentTimeMillis() - apiCheckStart;
+        logger.info("API endpoints discovery completed in {} ms, count: {}", apiCheckDuration, apiList.size());
+        
         resp.put("apiCount", apiList.size());
         resp.put("apis", apiList);
 
@@ -58,6 +73,8 @@ public class HealthController {
                 "PORT", System.getenv("PORT") != null
         ));
 
+        long totalDuration = System.currentTimeMillis() - startTime;
+        logger.info("Heartbeat request processed in {} ms", totalDuration);
         return resp;
     }
 
