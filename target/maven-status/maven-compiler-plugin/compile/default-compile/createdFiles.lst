@@ -1,5 +1,4 @@
 com\zds\bioengtsnapp\dto\DeepSeekRequest.class
-com\zds\bioengtsnapp\config\DataSourceConfig.class
 com\zds\bioengtsnapp\controller\UsersController.class
 com\zds\bioengtsnapp\dto\CourseDetailDTO.class
 com\zds\bioengtsnapp\domain\PhoneNumbers.class
