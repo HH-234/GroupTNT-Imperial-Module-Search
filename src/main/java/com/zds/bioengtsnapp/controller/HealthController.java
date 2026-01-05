@@ -15,7 +15,8 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * 健康检查接口：用于验证应用是否正常启动、数据库是否连接正常、列出所有API
+ * 健康检查接口：用于验证应用是否正常启动、列出所有API
+ * 注：前端直接调用 breakeve.cn，本地不需要数据库
  */
 @RestController
 public class HealthController {
@@ -25,12 +26,12 @@ public class HealthController {
     @Autowired
     private RequestMappingHandlerMapping requestMappingHandlerMapping;
 
-    @Autowired
+    @Autowired(required = false)
     private DataSource dataSource;
 
     /**
      * 完整心跳检查接口
-     * 返回：应用状态、数据库连接状态、所有API路径
+     * 返回：应用状态、API路径
      */
     @GetMapping({"/health", "/healthz", "/heartbeat"})
     public Map<String, Object> health() {
@@ -42,16 +43,25 @@ public class HealthController {
         // 1. 应用状态
         resp.put("status", "running");
         resp.put("app", "bioeng-tsn-app");
+        resp.put("mode", "proxy");
+        resp.put("backend", "http://www.breakeve.cn");
         resp.put("time", Instant.now().toString());
         resp.put("javaVersion", System.getProperty("java.version"));
         resp.put("osName", System.getProperty("os.name"));
 
-        // 2. 数据库连接检查
-        long dbCheckStart = System.currentTimeMillis();
-        Map<String, Object> dbStatus = checkDatabaseConnection();
-        long dbCheckDuration = System.currentTimeMillis() - dbCheckStart;
-        logger.info("Database check completed in {} ms, status: {}", dbCheckDuration, dbStatus.get("connected"));
-        resp.put("database", dbStatus);
+        // 2. 数据库连接检查（可选）
+        if (dataSource != null) {
+            long dbCheckStart = System.currentTimeMillis();
+            Map<String, Object> dbStatus = checkDatabaseConnection();
+            long dbCheckDuration = System.currentTimeMillis() - dbCheckStart;
+            logger.info("Database check completed in {} ms, status: {}", dbCheckDuration, dbStatus.get("connected"));
+            resp.put("database", dbStatus);
+        } else {
+            Map<String, Object> dbStatus = new LinkedHashMap<>();
+            dbStatus.put("connected", false);
+            dbStatus.put("message", "DataSource not configured (proxy mode)");
+            resp.put("database", dbStatus);
+        }
 
         // 3. 所有API路径
         long apiCheckStart = System.currentTimeMillis();
@@ -61,27 +71,6 @@ public class HealthController {
         
         resp.put("apiCount", apiList.size());
         resp.put("apis", apiList);
-
-        // 4. 环境变量（仅显示是否存在，不暴露值）
-        Map<String, Object> envMap = new LinkedHashMap<>();
-        envMap.put("TSURU_SERVICES", System.getenv("TSURU_SERVICES") != null);
-        envMap.put("PGHOST", System.getenv("PGHOST") != null);
-        envMap.put("PGPORT", System.getenv("PGPORT") != null);
-        envMap.put("PGDATABASE", System.getenv("PGDATABASE") != null);
-        envMap.put("PGUSER", System.getenv("PGUSER") != null);
-        envMap.put("PGPASSWORD", System.getenv("PGPASSWORD") != null);
-        envMap.put("PORT", System.getenv("PORT") != null);
-        
-        // 显示配置来源
-        String tsuruServices = System.getenv("TSURU_SERVICES");
-        if (tsuruServices != null && !tsuruServices.isEmpty()) {
-            envMap.put("configSource", "TSURU_SERVICES");
-        } else if (System.getenv("PGHOST") != null) {
-            envMap.put("configSource", "Individual ENV vars");
-        } else {
-            envMap.put("configSource", "Default values");
-        }
-        resp.put("env", envMap);
 
         long totalDuration = System.currentTimeMillis() - startTime;
         logger.info("Heartbeat request processed in {} ms", totalDuration);
@@ -99,7 +88,7 @@ public class HealthController {
     }
 
     /**
-     * 检查数据库连接 - 使用 Spring Boot 的 DataSource
+     * 检查数据库连接
      */
     private Map<String, Object> checkDatabaseConnection() {
         Map<String, Object> dbStatus = new LinkedHashMap<>();
@@ -133,30 +122,24 @@ public class HealthController {
             RequestMappingInfo mappingInfo = entry.getKey();
             HandlerMethod handlerMethod = entry.getValue();
 
-            // 获取路径 - 兼容 Spring Boot 2.7+
             Set<String> patterns = new HashSet<>();
             
-            // 尝试使用 PathPatternsCondition (Spring 5.3+)
             if (mappingInfo.getPathPatternsCondition() != null) {
                 mappingInfo.getPathPatternsCondition().getPatterns().forEach(p -> patterns.add(p.getPatternString()));
             }
-            // 回退到 PatternsCondition
             else if (mappingInfo.getPatternsCondition() != null) {
                 patterns.addAll(mappingInfo.getPatternsCondition().getPatterns());
             }
 
-            // 如果仍然为空，跳过
             if (patterns.isEmpty()) {
                 continue;
             }
 
-            // 获取HTTP方法
             Set<org.springframework.web.bind.annotation.RequestMethod> methods =
                     mappingInfo.getMethodsCondition().getMethods();
             String httpMethods = methods.isEmpty() ? "ALL" :
                     methods.stream().map(Enum::name).reduce((a, b) -> a + ", " + b).orElse("");
 
-            // 获取控制器和方法名
             String controller = handlerMethod.getBeanType().getSimpleName();
             String methodName = handlerMethod.getMethod().getName();
 
@@ -170,7 +153,6 @@ public class HealthController {
             }
         }
 
-        // 按路径排序
         apiList.sort(Comparator.comparing(a -> a.get("path")));
 
         return apiList;

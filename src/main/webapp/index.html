@@ -1119,14 +1119,14 @@
             try {
                 if (currentType === 'course') {
                     console.log('Fetching courses...');
-                    const res = await fetch(`/courses/search?courseName=${encodeURIComponent(query)}&page=${currentPage}&size=${pageSize}`);
+                    const res = await fetch(`http://www.breakeve.cn/courses/search?courseName=${encodeURIComponent(query)}&page=${currentPage}&size=${pageSize}`);
                     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                     const data = await res.json();
                     console.log('Received course data:', data);
                     renderCourseList(data);
                 } else {
                     console.log('Fetching users...');
-                    const res = await fetch(`/users/search/details?fullName=${encodeURIComponent(query)}&page=${currentPage}&size=${pageSize}`);
+                    const res = await fetch(`http://www.breakeve.cn/users/search/details?fullName=${encodeURIComponent(query)}&page=${currentPage}&size=${pageSize}`);
                     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                     const data = await res.json();
                     console.log('Received user data:', data);
@@ -1690,7 +1690,7 @@
             const loadingId = addMessage('Thinking...', 'ai', true);
 
             try {
-                const response = await fetch('ai/chat', {
+                const response = await fetch('http://www.breakeve.cn/ai/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
