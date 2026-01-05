@@ -24,6 +24,9 @@ public class EnvDebugConfig {
         envMap.put("PGDATABASE", env.getProperty("PGDATABASE"));
         envMap.put("PGUSER", env.getProperty("PGUSER"));
         envMap.put("PGPASSWORD", env.getProperty("PGPASSWORD"));
+        envMap.put("TSURU_APPNAME", env.getProperty("TSURU_APPNAME"));
+        envMap.put("TSURU_APPDIR", env.getProperty("TSURU_APPDIR"));
+        envMap.put("TSURU_SERVICES", env.getProperty("TSURU_SERVICES"));
         return envMap;
     }
 
