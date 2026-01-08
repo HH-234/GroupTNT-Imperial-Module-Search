@@ -27,6 +27,10 @@ public class EnvDebugConfig {
         envMap.put("TSURU_APPNAME", env.getProperty("TSURU_APPNAME"));
         envMap.put("TSURU_APPDIR", env.getProperty("TSURU_APPDIR"));
         envMap.put("TSURU_SERVICES", env.getProperty("TSURU_SERVICES"));
+        envMap.put("DATABASE_NAME", env.getProperty("DATABASE_NAME"));
+        envMap.put("DATABASE_USER", env.getProperty("DATABASE_USER"));
+        envMap.put("DATABASE_PASSWORD", env.getProperty("DATABASE_PASSWORD"));
+        envMap.put("DATABASE_HOST", env.getProperty("DATABASE_HOST"));
         return envMap;
     }
 
