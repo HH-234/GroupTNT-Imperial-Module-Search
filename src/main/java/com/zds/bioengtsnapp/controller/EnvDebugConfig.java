@@ -10,27 +10,21 @@ import java.util.Map;
 @RestController
 public class EnvDebugConfig {
 
-    private final Environment env;
-
-    public EnvDebugConfig(Environment env) {
-        this.env = env;
-    }
-
     @GetMapping("/env")
     public Map<String, String> getEnv() {
         Map<String, String> envMap = new HashMap<>();
-        envMap.put("PGHOST", env.getProperty("PGHOST"));
-        envMap.put("PGPORT", env.getProperty("PGPORT"));
-        envMap.put("PGDATABASE", env.getProperty("PGDATABASE"));
-        envMap.put("PGUSER", env.getProperty("PGUSER"));
-        envMap.put("PGPASSWORD", env.getProperty("PGPASSWORD"));
-        envMap.put("TSURU_APPNAME", env.getProperty("TSURU_APPNAME"));
-        envMap.put("TSURU_APPDIR", env.getProperty("TSURU_APPDIR"));
-        envMap.put("TSURU_SERVICES", env.getProperty("TSURU_SERVICES"));
-        envMap.put("DATABASE_NAME", env.getProperty("DATABASE_NAME"));
-        envMap.put("DATABASE_USER", env.getProperty("DATABASE_USER"));
-        envMap.put("DATABASE_PASSWORD", env.getProperty("DATABASE_PASSWORD"));
-        envMap.put("DATABASE_HOST", env.getProperty("DATABASE_HOST"));
+        envMap.put("PGHOST", System.getProperty("PGHOST"));
+        envMap.put("PGPORT", System.getProperty("PGPORT"));
+        envMap.put("PGDATABASE", System.getProperty("PGDATABASE"));
+        envMap.put("PGUSER", System.getProperty("PGUSER"));
+        envMap.put("PGPASSWORD", System.getProperty("PGPASSWORD"));
+        envMap.put("TSURU_APPNAME", System.getProperty("TSURU_APPNAME"));
+        envMap.put("TSURU_APPDIR", System.getProperty("TSURU_APPDIR"));
+        envMap.put("TSURU_SERVICES", System.getProperty("TSURU_SERVICES"));
+        envMap.put("DATABASE_NAME", System.getProperty("DATABASE_NAME"));
+        envMap.put("DATABASE_USER", System.getProperty("DATABASE_USER"));
+        envMap.put("DATABASE_PASSWORD", System.getProperty("DATABASE_PASSWORD"));
+        envMap.put("DATABASE_HOST", System.getProperty("DATABASE_HOST"));
         return envMap;
     }
 
