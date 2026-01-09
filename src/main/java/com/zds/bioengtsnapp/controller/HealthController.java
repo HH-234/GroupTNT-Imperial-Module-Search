@@ -15,7 +15,8 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * 健康检查接口：用于验证应用是否正常启动、数据库是否连接正常、列出所有API
+ * Health check interface: Used to verify if the application is running normally,
+ * if the database connection is normal, and list all APIs.
  */
 @RestController
 public class HealthController {
@@ -29,8 +30,8 @@ public class HealthController {
     private DataSource dataSource;
 
     /**
-     * 完整心跳检查接口
-     * 返回：应用状态、数据库连接状态、所有API路径
+     * Complete heartbeat check interface
+     * Returns: Application status, database connection status, all API paths
      */
     @GetMapping({"/health", "/healthz", "/heartbeat"})
     public Map<String, Object> health() {
@@ -39,21 +40,21 @@ public class HealthController {
         
         Map<String, Object> resp = new LinkedHashMap<>();
 
-        // 1. 应用状态
+        // 1. Application Status
         resp.put("status", "running");
         resp.put("app", "bioeng-tsn-app");
         resp.put("time", Instant.now().toString());
         resp.put("javaVersion", System.getProperty("java.version"));
         resp.put("osName", System.getProperty("os.name"));
 
-        // 2. 数据库连接检查
+        // 2. Database Connection Check
         long dbCheckStart = System.currentTimeMillis();
         Map<String, Object> dbStatus = checkDatabaseConnection();
         long dbCheckDuration = System.currentTimeMillis() - dbCheckStart;
         logger.info("Database check completed in {} ms, status: {}", dbCheckDuration, dbStatus.get("connected"));
         resp.put("database", dbStatus);
 
-        // 3. 所有API路径
+        // 3. All API Paths
         long apiCheckStart = System.currentTimeMillis();
         List<Map<String, String>> apiList = getAllApiEndpoints();
         long apiCheckDuration = System.currentTimeMillis() - apiCheckStart;
@@ -62,7 +63,7 @@ public class HealthController {
         resp.put("apiCount", apiList.size());
         resp.put("apis", apiList);
 
-        // 4. 环境变量（仅显示是否存在，不暴露值）
+        // 4. Environment Variables (Only show existence, do not expose values)
         Map<String, Boolean> envMap = new HashMap<>();
         envMap.put("PGHOST", System.getenv("PGHOST") != null);
         envMap.put("PGPORT", System.getenv("PGPORT") != null);
@@ -78,7 +79,7 @@ public class HealthController {
     }
 
     /**
-     * 简单存活检查（用于负载均衡器）
+     * Simple Liveness Check (For Load Balancer)
      */
     @GetMapping("/ping")
     public Map<String, String> ping() {
@@ -88,7 +89,7 @@ public class HealthController {
     }
 
     /**
-     * 检查数据库连接 - 使用 Spring Boot 的 DataSource
+     * Check Database Connection - Using Spring Boot's DataSource
      */
     private Map<String, Object> checkDatabaseConnection() {
         Map<String, Object> dbStatus = new LinkedHashMap<>();
@@ -111,7 +112,7 @@ public class HealthController {
     }
 
     /**
-     * 获取所有已注册的API端点
+     * Get all registered API endpoints
      */
     private List<Map<String, String>> getAllApiEndpoints() {
         List<Map<String, String>> apiList = new ArrayList<>();
@@ -122,30 +123,30 @@ public class HealthController {
             RequestMappingInfo mappingInfo = entry.getKey();
             HandlerMethod handlerMethod = entry.getValue();
 
-            // 获取路径 - 兼容 Spring Boot 2.7+
+            // Get Path - Compatible with Spring Boot 2.7+
             Set<String> patterns = new HashSet<>();
             
-            // 尝试使用 PathPatternsCondition (Spring 5.3+)
+            // Try using PathPatternsCondition (Spring 5.3+)
             if (mappingInfo.getPathPatternsCondition() != null) {
                 mappingInfo.getPathPatternsCondition().getPatterns().forEach(p -> patterns.add(p.getPatternString()));
             }
-            // 回退到 PatternsCondition
+            // Fallback to PatternsCondition
             else if (mappingInfo.getPatternsCondition() != null) {
                 patterns.addAll(mappingInfo.getPatternsCondition().getPatterns());
             }
 
-            // 如果仍然为空，跳过
+            // If still empty, skip
             if (patterns.isEmpty()) {
                 continue;
             }
 
-            // 获取HTTP方法
+            // Get HTTP Method
             Set<org.springframework.web.bind.annotation.RequestMethod> methods =
                     mappingInfo.getMethodsCondition().getMethods();
             String httpMethods = methods.isEmpty() ? "ALL" :
                     methods.stream().map(Enum::name).reduce((a, b) -> a + ", " + b).orElse("");
 
-            // 获取控制器和方法名
+            // Get Controller and Method Name
             String controller = handlerMethod.getBeanType().getSimpleName();
             String methodName = handlerMethod.getMethod().getName();
 
@@ -159,7 +160,7 @@ public class HealthController {
             }
         }
 
-        // 按路径排序
+        // Sort by path
         apiList.sort(Comparator.comparing(a -> a.get("path")));
 
         return apiList;

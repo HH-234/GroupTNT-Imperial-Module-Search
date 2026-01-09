@@ -20,7 +20,7 @@ public class UsersController {
     }
 
     /**
-     * 根据全名搜索用户基本信息
+     * Search user basic information by full name
      * URL: /users/search?fullName=xxx
      */
     @GetMapping("/users/search")
@@ -29,7 +29,7 @@ public class UsersController {
     }
 
     /**
-     * 根据全名搜索用户详细信息（包含 phoneNumbers / addresses / discoveryUrlId 等）
+     * Search user detailed information by full name (including phoneNumbers / addresses / discoveryUrlId etc.)
      * URL: /users/search/details?fullName=xxx&page=1&size=10
      */
     @GetMapping("/users/search/details")

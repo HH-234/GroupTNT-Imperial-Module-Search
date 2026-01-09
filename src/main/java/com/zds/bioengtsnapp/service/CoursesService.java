@@ -36,7 +36,7 @@ public class CoursesService {
         
         IPage<Courses> coursesIPage = coursesMapper.selectPage(coursesPage, queryWrapper);
         
-        // 转换为 CourseDetailDTO
+        // Convert to CourseDetailDTO
         Page<CourseDetailDTO> dtoPage = new Page<>(page, size);
         BeanUtils.copyProperties(coursesIPage, dtoPage);
         
@@ -45,7 +45,7 @@ public class CoursesService {
                     CourseDetailDTO dto = new CourseDetailDTO();
                     BeanUtils.copyProperties(course, dto);
                     
-                    // 查询模块
+                    // Query modules
                     List<CourseModules> modules = courseModulesMapper.selectByCourseId(course.getId());
                     List<CourseDetailDTO.ModuleDTO> moduleDTOs = modules.stream()
                             .map(module -> {

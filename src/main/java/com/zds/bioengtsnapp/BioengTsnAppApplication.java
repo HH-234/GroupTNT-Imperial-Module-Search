@@ -8,7 +8,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan;
 
 /**
- * 主应用类：继承 SpringBootServletInitializer 以支持外部 Tomcat 部署
+ * Main Application Class: Extends SpringBootServletInitializer to support external Tomcat deployment
  */
 @SpringBootApplication
 @ComponentScan({"com.zds.bioengtsnapp", "generator"})

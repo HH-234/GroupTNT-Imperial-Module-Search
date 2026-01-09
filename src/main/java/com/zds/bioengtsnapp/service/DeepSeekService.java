@@ -59,9 +59,9 @@ public class DeepSeekService {
     }
 
     /**
-     * 与 DeepSeek AI 进行对话（同步方式，兼容外部 Tomcat）
-     * @param userMessage 用户消息
-     * @return AI 回复
+     * Chat with DeepSeek AI (Synchronous mode, compatible with external Tomcat)
+     * @param userMessage User message
+     * @return AI response
      */
     public String chat(String userMessage) {
         try {

@@ -30,30 +30,30 @@ public class UsersService {
     }
 
     public IPage<UserDetailDTO> getUserDetailsByFullNamePage(int page, int size, String fullName) {
-        // 使用 MyBatis 查询获取详细信息
+        // Use MyBatis query to get detailed information
         List<UserDetailDTO> allDetails;
         if (StringUtils.hasText(fullName)) {
             allDetails = usersMapper.getUserDetailsByFullName(fullName);
         } else {
-            // 如果没有提供名称，返回空列表或所有用户（根据业务需求）
+            // If no name is provided, return empty list or all users (depending on business requirements)
             allDetails = Collections.emptyList();
 
         }
         
-        // 手动分页
+        // Manual pagination
         int total = allDetails.size();
         int start = (page - 1) * size;
         int end = Math.min(start + size, total);
 
         List<UserDetailDTO> pagedList = start < total ? allDetails.subList(start, end) : Collections.emptyList();
         
-        // 合并相同用户的 phoneNumbers 和 addresses
+        // Merge phoneNumbers and addresses for the same user
         Map<Long, UserDetailDTO> userMap = pagedList.stream()
                 .collect(Collectors.toMap(
                         UserDetailDTO::getId,
                         dto -> dto,
                         (existing, replacement) -> {
-                            // 合并逻辑：如果同一个用户出现多次，合并 phoneNumbers 和 addresses
+                            // Merge logic: if the same user appears multiple times, merge phoneNumbers and addresses
                             if (existing.getPhoneNumbers() != null && replacement.getPhoneNumbers() != null) {
                                 existing.getPhoneNumbers().addAll(replacement.getPhoneNumbers());
                             } else if (replacement.getPhoneNumbers() != null) {

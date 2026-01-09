@@ -4,13 +4,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 /**
- * 首页控制器 - 处理根路径请求
+ * Home Controller - Handles root path requests
  */
 @Controller
 public class HomeController {
 
     /**
-     * 捕获根路径 "/" 请求，转发到 index.html
+     * Captures root path "/" requests and forwards to index.html
      */
     @GetMapping("")
     public String home() {
