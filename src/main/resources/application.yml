@@ -9,10 +9,24 @@ spring:
     allow-bean-definition-overriding: true
 
   datasource:
-    url: jdbc:postgresql://123.45.67.89:5432/imperial_profiles?sslmode=disable
-    username: postgres2
+    url: jdbc:postgresql://47.103.85.203:5432/imperial_profiles?sslmode=disable&connectTimeout=10&socketTimeout=30
+    username: postgres
     driver-class-name: org.postgresql.Driver
-    password: 123456
+    password: 12345678
+    # HikariCP 连接池配置
+    hikari:
+      # 连接池最小空闲连接数
+      minimum-idle: 5
+      # 连接池最大连接数
+      maximum-pool-size: 20
+      # 连接超时时间（毫秒）
+      connection-timeout: 10000
+      # 连接空闲超时时间（毫秒）
+      idle-timeout: 300000
+      # 连接最大生存时间（毫秒）
+      max-lifetime: 1800000
+      # 连接测试查询
+      connection-test-query: SELECT 1
 
   # Transaction Management
   transaction:

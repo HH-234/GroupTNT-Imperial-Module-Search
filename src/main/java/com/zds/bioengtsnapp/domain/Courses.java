@@ -8,7 +8,7 @@ public class Courses {
     private String courseUrl;
     private String qualification;
     private String duration;
-    private LocalDateTime startDate;
+    private String startDate;
     private String ucasCode;
     private String studyMode;
     private String feeHome;
@@ -63,11 +63,11 @@ public class Courses {
         this.duration = duration;
     }
 
-    public LocalDateTime getStartDate() {
+    public String getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDateTime startDate) {
+    public void setStartDate(String startDate) {
         this.startDate = startDate;
     }
 
