@@ -9,10 +9,10 @@ spring:
     allow-bean-definition-overriding: true
 
   datasource:
-    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
-    username: ${PGUSER}
-    password: ${PGPASSWORD}
+    url: jdbc:postgresql://123.45.67.89:5432/imperial_profiles?sslmode=disable
+    username: postgres2
     driver-class-name: org.postgresql.Driver
+    password: 123456
 
   # Transaction Management
   transaction:
@@ -34,6 +34,3 @@ deepseek:
   api:
     key: sk-b81e9c8cf9624929af4b668125a9955f
   base-url: https://api.deepseek.com
-
-
-
